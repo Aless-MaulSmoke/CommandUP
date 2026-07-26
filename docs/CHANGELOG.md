@@ -3,7 +3,7 @@
 * **Timer bug**: Fixed an inconsistency in the display of the original video time and the total elapsed time.
 * **Final report**: The process's final report now displays results for batches of files processed in the folder, even if only a single valid file was processed.
 * **Shutdown error**: Fixed a bug that stopped the computer shutdown countdown if the terminal window did not have focus.
-
+* **Fake warnings**: Fake warnings when sending parameters via the console without specifying -drag config.
 
 
 ## [v1.1.1] - 2026-07-21
