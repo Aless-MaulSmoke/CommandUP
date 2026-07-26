@@ -5,7 +5,7 @@ INTERPOLATE=oversample
 SCALE=1920x1080
 SHARPNESS=8
 VERBOSE=false
-SHUTDOWN=false
+SHUTDOWN=true
 
 
 # =====================================================================

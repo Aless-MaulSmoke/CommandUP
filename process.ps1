@@ -1,7 +1,7 @@
 ﻿# ==========================================================================
 # ------------------------------
 #
-#   FSRIFS Core Processing Engine (v1.1.1)
+#   FSRIFS Core Processing Engine (v1.1.2)
 #   Automated pipeline for video upscaling (FSR) and frame interpolation (IFS).
 #
 #   process.ps1 (Powershell script)
@@ -627,7 +627,7 @@ function Invoke-VideoPipeline {
 	
 	# Exibe arquivo corrente
     $tsDuracao = [TimeSpan]::FromSeconds($Resultado.DuracaoVideo)
-    $timeDuracao = "{0:d2}:{1:d2}:{2:d2}" -f [int]$tsDuracao.TotalHours, $tsDuracao.Minutes, $tsDuracao.Seconds
+	$timeDuracao = "{0:d2}:{1:d2}:{2:d2}" -f [int][math]::Truncate($tsDuracao.TotalHours), $tsDuracao.Minutes, $tsDuracao.Seconds
 	Write-Host "`n[   File: $($Resultado.NomeArquivo)  Length: $($timeDuracao)  Resolution: $($wOriginal)x$($hOriginal)  FPS: $($metadata.fpsOriginal)   ]"  -ForegroundColor Gray
 	
     try {
@@ -715,11 +715,6 @@ function Show-VideoStatus {
         return
     }
 	
-	# Acumula os dados globais para o relatório final
-	if ($Result.TempoDecorrido -and $Result.TempoDecorrido.TotalSeconds -gt 0) {
-		$StatusAcumulado.Value.TempoTotalSegundos += $Result.TempoDecorrido.TotalSeconds
-	}
-
     # Inicializa variáveis para extração do Log original
     $tamanhoFinalStr = "N/A"
     $bitrateStr = "N/A"
@@ -783,7 +778,7 @@ function Out-GlobalSummary {
 	
 	# Converte os tempos acumulados para um formato legível (hh:mm:ss)
     $tsRender = [TimeSpan]::FromSeconds($StatusAcumulado.TempoTotalSegundos)
-    $tempoRenderTotal = "{0:d2}:{1:d2}:{2:d2}" -f [int]$tsRender.TotalHours, $tsRender.Minutes, $tsRender.Seconds
+	$tempoRenderTotal = "{0:d2}:{1:d2}:{2:d2}" -f [int][math]::Truncate($tsRender.TotalHours), $tsRender.Minutes, $tsRender.Seconds
 
     $tsVideos = [TimeSpan]::FromSeconds($StatusAcumulado.DuracaoTotalVideos)
     $tempoVideoTotal = "{0:d2}:{1:d2}:{2:d2}" -f [int]$tsVideos.TotalHours, $tsVideos.Minutes, $tsVideos.Seconds
@@ -795,7 +790,7 @@ function Out-GlobalSummary {
 	$InfoBanner = if ($Global:LastProcessResult) { $Global:LastProcessResult } else { $Global:SessionHistory[0] }
 
     # MODO INDIVIDUAL: Caso apenas 1 vídeo tenha rodado na fila
-	if ($StatusAcumulado.TotalSucesso -eq 1 -and $Global:LastProcessResult) {
+	if ($StatusAcumulado.TotalSucesso -eq 1 -and $Global:LastProcessResult -and -not $Config.folder) {
 		$Result = $Global:LastProcessResult
 		$velocidadeStr = if ($Result.Speed) { "$([math]::Round($Result.Speed, 2))x" } else { "1.00x" }
 		$bitrateStr    = if ($Result.Bitrate) { "$($Result.Bitrate) kbits/s" } else { "N/A" }
@@ -851,11 +846,11 @@ function Out-GlobalSummary {
 	Write-Host "====================================================================================" -ForegroundColor Cyan
 	Write-Host "  vCard (GPU): $($Pipeline.gpuName) [Codec: $Global:SelectedCodec] " -ForegroundColor Cyan
 	Write-Host "------------------------------------------------------------------------------------" -ForegroundColor DarkGray
-	Write-Host "                    __          _  __               _   _   _                       " -ForegroundColor Red
-	Write-Host "                   / _|___ _ __(_)/ _|___    __   _/ | / | / |                      " -ForegroundColor Red
-	Write-Host "                  | |_/ __| '__| | |_/ __|   \ \ / / | | | | |                      " -ForegroundColor Red
-	Write-Host "                  |  _\__ \ |  | |  _\__ \    \ V /| |_| | | |                      " -ForegroundColor Red
-	Write-Host "                  |_| |___/_|  |_|_| |___/     \_/ |_(_)_(_)_|                      " -ForegroundColor White
+	Write-Host "                    __          _  __               _   _  ___                      " -ForegroundColor Red
+	Write-Host "                   / _|___ _ __(_)/ _|___    __   _/ | / ||_  |                     " -ForegroundColor Red
+	Write-Host "                  | |_/ __| '__| | |_/ __|   \ \ / / | | | / /                      " -ForegroundColor Red
+	Write-Host "                  |  _\__ \ |  | |  _\__ \    \ V /| |_| |/ /_                      " -ForegroundColor Red
+	Write-Host "                  |_| |___/_|  |_|_| |___/     \_/ |_(_)_(_)__|                     " -ForegroundColor White
 	Write-Host "                                                                                    " -ForegroundColor White
 	Write-Host "            Author: Aless (MaulSmoke) | Community: YouTube (@toplayaless)           " -ForegroundColor Gray
 	Write-Host "                                                                                    " -ForegroundColor Gray

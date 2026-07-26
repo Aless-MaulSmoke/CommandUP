@@ -2,7 +2,7 @@
                     CRÉDITOS E ATRIBUIÇÕES DE LICENÇA
 ================================================================================
 
-FSRIFS v1.1.1 by Aless (MaulSmoke)
+FSRIFS v1.1.2 by Aless (MaulSmoke)
 
 Este pacote standalone distribui uma pipeline de pós-processamento modular 
 composta por ferramentas de código aberto integradas a uma lógica autoral. 
