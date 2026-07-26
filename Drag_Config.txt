@@ -95,4 +95,3 @@ SHUTDOWN=false
 #  false - Normal execution behavior. Keeps the computer running.
 #
 # =====================================================================
-

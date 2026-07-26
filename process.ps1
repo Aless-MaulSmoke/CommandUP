@@ -633,6 +633,7 @@ function Invoke-VideoPipeline {
     try {
 		
 	    # Intervalo de cores não pode ser Completo
+		# /**/ parece existir na libplacebo uma conversão ao de formato full para limited: realizar testes
 		if ($placeboRange -eq "pc") {
 			Throw "Full color format detected! Use Limited format."
 		}
@@ -859,31 +860,37 @@ function Out-GlobalSummary {
 	Write-Host "====================================================================================" -ForegroundColor Cyan
 
     # Lógica de Desligamento Automático
-    if ($ShutdownAtivo -and $StatusAcumulado.TotalSucesso -gt 0) {
-        Write-Host "The -shutdown parameter is active. The system will shut down." -ForegroundColor Yellow
-        Write-Host "Press [ESC] to CANCEL or [ENTER] to SHUT DOWN IMMEDIATELY." -ForegroundColor White
-        
-        $segundosRestantes = 30
-        while ($segundosRestantes -gt 0) {
-            Write-Host "`rShutting down in $segundosRestantes seconds..." -NoNewline -ForegroundColor Red
-            Start-Sleep -Seconds 1
-            
-            if ($Host.UI.RawUI.KeyAvailable) {
-				$tecla = $Host.UI.RawUI.ReadKey("IncludeKeyDown,NoEcho")
-                if ($tecla.VirtualKeyCode -eq 27) { 
-                    Write-Host "`n[CANCELLED] Automatic shutdown interrupted by the user." -ForegroundColor Green
-                    return
-                }
-                if ($tecla.VirtualKeyCode -eq 13) { 
-                    break
-                }
-            }
-            $segundosRestantes--
-        }
-        
-        Write-Host "`nStarting system shutdown..." -ForegroundColor Red
-        Stop-Computer -Force
-    }
+	if ($ShutdownAtivo -and $StatusAcumulado.TotalSucesso -gt 0) {
+		Write-Host "`nThe -shutdown parameter is active. The system will shut down." -ForegroundColor Yellow
+		Write-Host "Press [ESC] to CANCEL or [ENTER] to SHUT DOWN IMMEDIATELY." -ForegroundColor White
+
+		$segundosRestantes = 30
+		while ($segundosRestantes -gt 0) {
+			Write-Host "`rShutting down in $segundosRestantes seconds...  " -NoNewline -ForegroundColor Red
+			
+			# contagem
+			for ($i = 0; $i -lt 10; $i++) {
+				Start-Sleep -Milliseconds 100
+				
+				# usando .NET para funcionar mesmo que a janela do terminal perca o foco
+				if ([Console]::KeyAvailable) {
+					$tecla = [Console]::ReadKey($true)
+					if ($tecla.Key -eq "Escape") {
+						Write-Host "`n[CANCELLED] Automatic shutdown interrupted by the user." -ForegroundColor Green
+						return
+					}
+					if ($tecla.Key -eq "Enter") {
+						$segundosRestantes = 0
+						break
+					}
+				}
+			}
+			$segundosRestantes--
+		}
+
+		Write-Host "`nStarting system shutdown..." -ForegroundColor Red
+		Stop-Computer -Force
+	}
 }
 
 # ==========================================================================
