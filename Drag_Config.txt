@@ -5,7 +5,7 @@ INTERPOLATE=oversample
 SCALE=1920x1080
 SHARPNESS=8
 VERBOSE=false
-SHUTDOWN=true
+SHUTDOWN=false
 
 
 # =====================================================================
@@ -95,3 +95,4 @@ SHUTDOWN=true
 #  false - Normal execution behavior. Keeps the computer running.
 #
 # =====================================================================
+
