@@ -63,165 +63,179 @@ function Get-ScriptConfig {
         [System.Collections.IDictionary]$BoundParameters
     )
 
-	# 1. FASE 1: Converte o dicionário de parâmetros cru do console direto em objeto
-	$config = [PSCustomObject]@{}.PSObject.Copy()
-	foreach ($prop in $BoundParameters.GetEnumerator()) {
-		$config | Add-Member -NotePropertyName $prop.Key -NotePropertyValue $prop.Value
-	}
+    $config = [PSCustomObject]@{
+        file        = $null
+        folder      = $null
+        quality     = $null
+        fps         = $null
+        interpolate = $null
+        scale       = $null
+        sharpness   = $null
+        verbose     = $null
+        shutdown    = $null
+        drag_config = $false
+        v           = $null  # Alias para verbose
+    }
 
+    # Verifica se o parâmetro de comando -drag_config foi informado pelo usuário
+    $usaDragConfig = $BoundParameters.ContainsKey('drag_config') -and $BoundParameters['drag_config'] -eq $true
 
-	# 2. FASE 2 (DUMP): Busca apenas as chaves necessárias no arquivo, ignorando o manual
-	if ($config.drag_config -and (Test-Path "$PSScriptRoot\DRAG_CONFIG.txt")) {
-		$chavesNecessarias = @("QUALITY", "FPS", "INTERPOLATE", "SCALE", "SHARPNESS", "VERBOSE", "SHUTDOWN")
-		$conteudoTxt = Get-Content "$PSScriptRoot\DRAG_CONFIG.txt"
+    if ($usaDragConfig -and (Test-Path "$PSScriptRoot\DRAG_CONFIG.txt")) {
+        # Usa parametros do arquivo de configuração
+        if ($BoundParameters.ContainsKey('file'))   { $config.file   = $BoundParameters['file'] }
+        if ($BoundParameters.ContainsKey('folder')) { $config.folder = $BoundParameters['folder'] }
+        $config.drag_config = $true
 
-		foreach ($chave in $chavesNecessarias) {
-			# Busca a linha exata que começa com a chave seguida de "=" no arquivo
-			$linha = $conteudoTxt | Where-Object { $_ -match "^$chave\s*=" }
-			if ($linha) {
-				$propriedade, $valor = $linha.Split('=', 2)
-				$config | Add-Member -NotePropertyName $chave.ToLower() -NotePropertyValue $valor.Trim() -Force
-			}
-		}
-	}
+        # Busca apenas as chaves necessárias no arquivo de texto
+        $chavesNecessarias = @("QUALITY", "FPS", "INTERPOLATE", "SCALE", "SHARPNESS", "VERBOSE", "SHUTDOWN")
+        $conteudoTxt = Get-Content "$PSScriptRoot\DRAG_CONFIG.txt"
 
-	# 3. FASE 3: TRATAMENTO DE TIPOS, PADRONIZAÇÃO E VALIDAÇÃO FINAL
-	
-	# Catálogo de erros mapeado por IDs
-	$catalogoErros = @{
-		1 = "Ambiguity Error: Use ONLY '-file' OR '-folder', not both at the same time."
-		2 = "No input specified. Use '-file' for a single video or '-folder' for batch processing."
-		3 = "The 'quality' parameter only accepts one of these valid options: LOW | MED | BIG"
-		4 = "The 'fps' parameter must be a valid number greater than 0."
-		5 = "The 'interpolate' parameter only accepts one of these valid options: none | oversample | mitchell_clamp | linear"
-		6 = "The 'scale' parameter should be a resolution, e.g., 1920x1080, or a scaling factor, e.g., 1.5"
-		7 = "The 'sharpness' parameter only accepts numbers between 0 and 10"
-		8 = "The 'verbose' parameter only accepts true or false."
-		9 = "The 'shutdown' parameter only accepts true or false."
-	}
-	$errosEncontrados = @()
+        foreach ($chave in $chavesNecessarias) {
+            $linha = $conteudoTxt | Where-Object { $_ -match "^$chave\s*=" }
+            if ($linha) {
+                $propriedade, $valor = $linha.Split('=', 2)
+                $config.$($chave.ToLower()) = $valor.Trim()
+            }
+        }
+    }
+    else {
+        # Usa apenas parametros informado pelo usuário
+        foreach ($prop in $BoundParameters.GetEnumerator()) {
+            $config.$($prop.Key.ToLower()) = $prop.Value
+        }
+    }
 
-	# valida: FILE e FOLDER
-	if ($config.file -and $config.folder) { $errosEncontrados += 1 }
-	if (-not $config.file -and -not $config.folder) { $errosEncontrados += 2 }
+    # ==========================================================================
+    # TRATAMENTO DE TIPOS, PADRONIZAÇÃO E VALIDAÇÃO FINAL
+    # ==========================================================================
+    
+    # Catálogo de erros mapeado por IDs
+    $catalogoErros = @{
+        1 = "Ambiguity Error: Use ONLY '-file' OR '-folder', not both at the same time."
+        2 = "No input specified. Use '-file' for a single video or '-folder' for batch processing."
+        3 = "The 'quality' parameter only accepts one of these valid options: LOW | MED | BIG"
+        4 = "The 'fps' parameter must be a valid number greater than 0."
+        5 = "The 'interpolate' parameter only accepts one of these valid options: none | oversample | mitchell_clamp | linear"
+        6 = "The 'scale' parameter should be a resolution, e.g., 1920x1080, or a scaling factor, e.g., 1.5"
+        7 = "The 'sharpness' parameter only accepts numbers between 0 and 10"
+        8 = "The 'verbose' parameter only accepts true or false."
+        9 = "The 'shutdown' parameter only accepts true or false."
+    }
+    $errosEncontrados = @()
 
-	# valida: QUALITY
-	if ($null -ne $config.quality) {
-		$config.quality = [string]$config.quality.ToString().ToUpper()
-		if ($config.quality -notin @("LOW", "MED", "BIG")) { $errosEncontrados += 3 }
-	} else {
-		$config.quality = "MED" # Valor padrão de segurança
-	}
+    # valida: FILE e FOLDER
+    if ($config.file -and $config.folder) { $errosEncontrados += 1 }
+    if (-not $config.file -and -not $config.folder) { $errosEncontrados += 2 }
 
-	# valida: FPS
-	if ($null -ne $config.fps -and $config.fps -as [int]) {
-		$config.fps = [int]$config.fps
-		if ($config.fps -le 0) { $errosEncontrados += 4 }
-	} else {
-		# Se veio vazio ou não for número, marcamos erro (ou definimos como 0 se interpolate for "none")
-		if ($null -eq $config.fps) { $config.fps = 0 } else { $errosEncontrados += 4 }
-	}
+    # valida: QUALITY
+    if ($null -ne $config.quality) {
+        $config.quality = [string]$config.quality.ToString().ToUpper()
+        if ($config.quality -notin @("LOW", "MED", "BIG")) { $errosEncontrados += 3 }
+    } else {
+        $config.quality = "MED" # Valor padrão de segurança agora atribui com sucesso!
+    }
 
-	# valida: INTERPOLATE
-	if ($null -ne $config.interpolate) {
-		$config.interpolate = [string]$config.interpolate.ToString().ToLower()
-		$interpolacoesValidas = @("none", "oversample", "mitchell_clamp", "linear")
-		if ($config.interpolate -notin $interpolacoesValidas) { $errosEncontrados += 5 }
-	} else {
-		$config.interpolate = "none"
-	}
+    # valida: FPS
+    if ($null -ne $config.fps -and $config.fps -as [int]) {
+        $config.fps = [int]$config.fps
+        if ($config.fps -le 0) { $errosEncontrados += 4 }
+    } else {
+        if ($null -eq $config.fps) { $config.fps = 0 } else { $errosEncontrados += 4 }
+    }
 
-	# valida: SCALE
-	if ($null -ne $config.scale -and $config.scale -ne "") {
-		$config.scale = [string]$config.scale.ToString().Trim().ToLower()
+    # valida: INTERPOLATE
+    if ($null -ne $config.interpolate) {
+        $config.interpolate = [string]$config.interpolate.ToString().ToLower()
+        $interpolacoesValidas = @("none", "oversample", "mitchell_clamp", "linear")
+        if ($config.interpolate -notin $interpolacoesValidas) { $errosEncontrados += 5 }
+    } else {
+        $config.interpolate = "none"
+    }
 
-		# Cenário 1: O usuário informou uma resolução (Ex: 1920x1080)
-		if ($config.scale -match '^\d+x\d+$') {
-			$largura, $altura = $config.scale.Split('x')
-			if (($largura -as [int]) -and ($altura -as [int])) {
-				if ([int]$largura -le 0 -or [int]$altura -le 0) {
-					$errosEncontrados += 6
-				}
-			} else {
-				$errosEncontrados += 6
-			}
-		}
-		# Cenário 2: O usuário informou um multiplicador decimal (Ex: 1.5 ou 2)
-		elseif ($config.scale -as [double]) {
-			$config.scale = [double]$config.scale
-			if ($config.scale -le 0) {
-				$errosEncontrados += 6
-			}
-		}
-		# Cenário 3: Texto inválido que não encaixa em nenhum dos padrões
-		else {
-			$errosEncontrados += 6
-		}
-	} else {
-		$config.scale = $null # Se não informado, permanece nulo para ativar o bypass adiante
-	}
+    # valida: SCALE
+    if ($null -ne $config.scale -and $config.scale -ne "") {
+        $config.scale = [string]$config.scale.ToString().Trim().ToLower()
 
-	# valida: SHARPNESS
-	if ($null -ne $config.sharpness -and $config.sharpness -ne "") {
-		if ($config.sharpness -as [int]) {
-			$config.sharpness = [int]$config.sharpness
-			if ($config.sharpness -lt 0 -or $config.sharpness -gt 10) {
-				$errosEncontrados += 7
-			}
-		} else {
-			$errosEncontrados += 7
-		}
-	} else {
-		$config.sharpness = 0 # Se não for informado, define o padrão como 0
-	}
+        # Cenário 1: O usuário informou uma resolução (Ex: 1920x1080)
+        if ($config.scale -match '^\d+x\d+$') {
+            $largura, $altura = $config.scale.Split('x')
+            if (($largura -as [int]) -and ($altura -as [int])) {
+                if ([int]$largura -le 0 -or [int]$altura -le 0) {
+                    $errosEncontrados += 6
+                }
+            } else {
+                $errosEncontrados += 6
+            }
+        }
+        # Cenário 2: O usuário informou um multiplicador decimal (Ex: 1.5 ou 2)
+        elseif ($config.scale -as [double]) {
+            $config.scale = [double]$config.scale
+            if ($config.scale -le 0) {
+                $errosEncontrados += 6
+            }
+        }
+        # Cenário 3: Texto inválido que não encaixa em nenhum dos padrões
+        else {
+            $errosEncontrados += 6
+        }
+    } else {
+        $config.scale = $null 
+    }
 
-	# valida: VERBOSE
-	$valorFinalVerbose = $false
-	$existeV = $null -ne $config.PSObject.Properties['v']
-	$existeVerbose = $null -ne $config.PSObject.Properties['verbose']
+    # valida: SHARPNESS
+    if ($null -ne $config.sharpness -and $config.sharpness -ne "") {
+        if ($config.sharpness -as [int]) {
+            $config.sharpness = [int]$config.sharpness
+            if ($config.sharpness -lt 0 -or $config.sharpness -gt 10) {
+                $errosEncontrados += 7
+            }
+        } else {
+            $errosEncontrados += 7
+        }
+    } else {
+        $config.sharpness = 0 
+    }
 
-	if ($existeV -and -not $existeVerbose) {
-		$valorFinalVerbose = $true
-		$config.PSObject.Properties.Remove('v')
-	} else {
-		# Garante que o valor vindo do arquivo de texto seja testado estritamente como string
-		$strTesteVerbose = if ($null -ne $config.verbose) { $config.verbose.ToString().ToLower().Trim() } else { "" }
+    # valida: VERBOSE
+    $valorFinalVerbose = $false
+    $existeV = $null -ne $config.v
+    $existeVerbose = $null -ne $config.verbose
 
-		if ($existeVerbose -and $strTesteVerbose -notin @("true", "false")) {
-			$errosEncontrados += 8
-		} else {
-			$valorFinalVerbose = ($strTesteVerbose -eq "true")
-		}
-		
-		if ($existeV) { $config.PSObject.Properties.Remove('v') }
-	}
-	$config.verbose = $valorFinalVerbose
+    if ($existeV -and -not $existeVerbose) {
+        $valorFinalVerbose = $true
+    } else {
+        $strTesteVerbose = if ($null -ne $config.verbose) { $config.verbose.ToString().ToLower().Trim() } else { "" }
 
-	# valida: SHUTDOWN
-	$valorFinalShutdown = $false
-	$existeShutdown = $null -ne $config.PSObject.Properties['shutdown']
-	if ($existeShutdown) {
-		$strTesteShutdown = $config.shutdown.ToString().ToLower().Trim()
-		if ($strTesteShutdown -notin @("true", "false")) {
-			$errosEncontrados += 9
-		} else {
-			$valorFinalShutdown = ($strTesteShutdown -eq "true")
-		}
-	} else {
-		$valorFinalShutdown = $false # Padrão se ninguém informou nada no arquivo ou console
-	}
-	$config.shutdown = $valorFinalShutdown
+        if ($existeVerbose -and $strTesteVerbose -notin @("true", "false") -and $strTesteVerbose -ne "") {
+            $errosEncontrados += 8
+        } else {
+            $valorFinalVerbose = ($strTesteVerbose -eq "true")
+        }
+    }
+    $config.verbose = $valorFinalVerbose
 
-	# LOOP DE VERIFICAÇÃO DE ERROS
-	if ($errosEncontrados.Count -gt 0) {
-		foreach ($id in $errosEncontrados) {
-			Write-Warning $catalogoErros[$id]
-		}
-		exit
-	}
+    # valida: SHUTDOWN
+    $valorFinalShutdown = $false
+    $existeShutdown = $null -ne $config.shutdown -and $config.shutdown -ne ""
+    if ($existeShutdown) {
+        $strTesteShutdown = $config.shutdown.ToString().ToLower().Trim()
+        if ($strTesteShutdown -notin @("true", "false")) {
+            $errosEncontrados += 9
+        } else {
+            $valorFinalShutdown = ($strTesteShutdown -eq "true")
+        }
+    }
+    $config.shutdown = $valorFinalShutdown
 
-	return $config
-	
+    # LOOP DE VERIFICAÇÃO DE ERROS
+    if ($errosEncontrados.Count -gt 0) {
+        foreach ($id in $errosEncontrados) {
+            Write-Warning $catalogoErros[$id]
+        }
+        exit
+    }
+
+    return $config
 }
 
 # ==========================================================================
