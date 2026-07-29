@@ -4,7 +4,7 @@ FPS=60
 INTERPOLATE=oversample
 SCALE=1920x1080
 SHARPNESS=8
-VERBOSE=false
+HDR=false
 SHUTDOWN=false
 
 
@@ -62,10 +62,10 @@ SHUTDOWN=false
 #  *Bypass active: Automatically skipped if same as source video.
 #
 #  - RESOLUTION CHEAT SHEET
-#  720p  = 1280x720   (HD)
-#  1080p = 1920x1080  (Full HD)
-#  2K    = 2560x1440  (Quad HD / QHD)
-#  4K    = 3840x2160  (Ultra HD / UHD)
+#  1280x720  -  720p (HD)
+#  1920x1080 - 1080p (Full HD)
+#  2560x1440 -    2K (Quad HD / QHD)
+#  3840x2160 -    4K (Ultra HD / UHD)
 #
 #  - MULTIPLIER FACTOR ALTERNATIVE
 #  Instead of resolution, you can use decimal numbers for SCALE.
@@ -79,19 +79,26 @@ SHUTDOWN=false
 #  *Bypass active: Automatically disabled if no upscale happens.
 #
 #
-#  VERBOSE:
+#  HDR:
 #  --------------------------------------------------------------------
-#  Toggles detailed rendering logs inside the terminal window.
-#  true  - Shows detailed real-time processing information.
-#  false - Keeps the screen clean, showing only essential messages.
+#  Enables high dynamic range processing for the AMD FSR shader pass.
+#
+#  WARNING: This is NOT "High Definition" (HD) quality!
+#  Turning this ON on a normal non-HDR video will RUIN
+#  colors and distort brightness.
+#
+#  false - Standard dynamic range processing. Uses standard BT.709 
+#          color space equations. Best for normal non-HDR content.
+#  true  - Forces the FSR to use the PQ color space pipeline.
+#          MUST BE USED ONLY if the source video has PQ gamma (HDR10).
 #
 #
 #  SHUTDOWN:
 #  --------------------------------------------------------------------
 #  Triggers a controlled system shutdown once the execution ends.
+#  false - Normal execution behavior. Keeps the computer running.
 #  true  - Displays a 30s screen countdown. User can press:
 #          [ENTER] to turn off instantly, or 
 #          [ESC]   to abort and keep PC on.
-#  false - Normal execution behavior. Keeps the computer running.
 #
 # =====================================================================

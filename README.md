@@ -1,152 +1,168 @@
-# 📖 FSRIFS v1.1.2 Documentation: Concept & Practical Guide
+# FSRIFS v1.2.0 — Upscale + Frame Interpolator 🎬
 
-Welcome to the official documentation for **FSRIFS** (FidelityFX Super Resolution + Interpolate Frame Sampling), a lightweight video post-processing pipeline designed specifically for low-end and legacy hardware.
+> **Lightweight, autonomous video post-processing pipeline tailored for low-end and legacy hardware.** Bring the "Lossless Scaling" workflow to your offline local video files.
 
 ---
 
-## 💡 The Project Concept
+## 💡 The Concept & Workflow
 
-### The Core Problem
-Running a demanding game while simultaneously recording your gameplay in high resolution is a heavy workload that requires an extremely robust PC. Even high-end gaming rigs can struggle under this dual real-time processing stress. 
+Running a demanding game while simultaneously recording your gameplay in high resolution is a heavy workload that chokes entry-level computers. **FSRIFS** solves this by segmenting your workflow:
 
-To solve this, the ideal workflow is to segment the process:
-1. **Record first:** Capture your gameplay at a modest resolution (e.g., 720p at 30 FPS). This allows your PC to maintain ultra graphical settings, high framerates, or features like Ray Tracing while playing.
-2. **Process later:** Submit the final video file to an offline upscaling and frame generation pipeline to achieve the desired high resolution and smooth motion.
+1. **Record First:** Capture your gameplay at a modest, stable resolution (e.g., 720p at 30 FPS). This allows your PC to maintain Ultra graphics settings or Ray Tracing while playing.
+2. **Process Later:** Submit the final recorded video to FSRIFS to scale it up to **1080p at 60 FPS** or even **4K** offline.
 
 ### Why FSRIFS is Different
-Most modern upscale and frame generation software depend heavily on complex Artificial Intelligence algorithms. These tools require powerful, cutting-edge CPUs and GPUs featuring dedicated AI accelerator hardware, alongside massive amounts of VRAM. For entry-level or legacy graphics cards, running these solutions is physically impossible.
-
-**FSRIFS** changes the game. Inspired by the efficiency of *Lossless Scaling* in real-time gaming environments, this project adapts that exact principle for local video file processing. Instead of utilizing heavy AI neural networks, it replaces them with direct, lightweight mathematical instructions that run straight on your GPU silicon. This brings fresh life to older setups—such as an AMD FX-6300 CPU and a 4GB Radeon RX 550 GPU—allowing you to easily transform a 720p/30fps capture into a fluid 1080p/60fps or 4K master file without overloading your hardware.
+Unlike mainstream tools that rely on heavy Artificial Intelligence, modern neural networks, and massive VRAM allocation, **FSRIFS uses direct mathematical instructions running straight on your GPU silicon**. This brings fresh life to older setups—such as an AMD FX-6300 CPU and a 4GB Radeon RX 550 GPU—without overloading your hardware.
 
 ---
 
-## 🛠️ Hardware Requirements & Dependencies
+## 🛠️ Hardware & Software Requirements
 
-To ensure total system stability and prevent crashes, your computer must meet the following minimum requirements:
+To ensure total system stability and prevent memory crashes, your computer must meet the following requirements:
 
-* **Vulkan API Compatibility (MANDATORY):** Your graphics card must have native support for Vulkan technology. The custom IFS shader executes temporal calculations directly on the GPU through this API. It works on dedicated GPUs (AMD RX, Nvidia GTX/RTX) as well as recent integrated chips (AMD Vega or newer Intel HD Graphics). If Vulkan is missing, the pipeline will not start.
-* **Processor (CPU):** Any basic 4 or 6-core legacy processor (such as the AMD FX line or older Intel Core generations) is fully capable. Average CPU usage remains around 45%, keeping Windows smooth and free from overheating during rendering.
-* **Video Memory (VRAM):** Legacy cards with 2GB of VRAM are sufficient. However, it is highly recommended to close web browsers, Discord, and games in the background before processing high resolutions (2K or 4K) to prevent video memory overflow.
-* **Operating System:** Windows 10 or Windows 11 (64-bit) with an active PowerShell terminal allowed to execute local scripts.
+* **Vulkan API Compatibility (MANDATORY):** Your graphics card must have native support for Vulkan. Works on dedicated GPUs (AMD RX, Nvidia GTX/RTX) and recent integrated chips (AMD Vega/Intel HD Graphics). *If Vulkan is missing, the process will not start.*
+* **Processor (CPU):** Any basic 4 or 6-core legacy processor (e.g., AMD FX or older Intel Core). Average CPU usage remains around 45%, keeping Windows smooth and free from overheating.
+* **Video Memory (VRAM):** Legacy cards with **2GB of VRAM** are sufficient if used smartly. *Tip: Highly recommended to close web browsers, Discord, and background games before processing high resolutions (2K/4K) to prevent memory overflow.*
+* **Operating System:** Windows 10 or Windows 11 (64-bit) with an active PowerShell terminal allowed to execute scripts.
 
 ---
 
 ## 📦 Installation & Setup
 
 1. Download the project `.zip` package from the repository releases.
-2. Extract the archive into any directory of your preference to reveal the `FSRIFS` folder structure.
-3. Open a standard **PowerShell** window (you do *not* need to run it as an Administrator; the scripts do not require elevated system privileges).
-4. If this is your very first time executing automated scripts on your computer, type the following command into PowerShell to allow script execution:
+2. Extract the archive into any directory to reveal the `FSRIFS` folder structure.
+3. Open a standard **PowerShell** window (Administrator privileges are **not** required).
+4. If this is your very first time executing automated scripts on your computer, type the following command to allow execution:
 
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
 ```
+⚠️ **Action Required:** Type **YES** (`Y`) when prompted by the terminal to apply the temporary execution policy.
 
-> ⚠️ **Action Required:** Type **YES** (`Y`) when prompted by the terminal to apply the new temporary execution policy.
 ---
 
 ## 🚀 How to Run the Pipeline
 
-Once your PowerShell environment is ready, you can process your videos using two different approaches:
-
 ### Method 1: Drag & Drop (User-Friendly Interface)
-Tailored for users who have no experience with terminal commands.
+*Tailored for users who have no experience with terminal commands.*
 
-1. Open your file explorer and navigate to your extracted `FSRIFS` folder.
-2. Locate the file named `DRAG_HERE.bat`.
-3. Open another file explorer window and choose your input:
-   * **Single File:** Drag and drop your video file directly on top of the `DRAG_HERE` file to process it alone.
-   * **Full Folder:** Drag and drop a folder containing multiple videos on top of the `DRAG_HERE` file to process all files in batch mode automatically.
+1. Navigate to your extracted `FSRIFS` folder and locate the file named `DRAG_HERE.bat`.
+2. Open another file explorer window and drag your input over `DRAG_HERE.bat`:
+   * **Single File:** Drag and drop your video file to process it alone.
+   * **Full Folder:** Drag and drop a folder containing multiple videos to process all files in batch mode automatically.
 
 #### Customizing Drag & Drop Settings
-You can modify the default processing behavior by opening and editing the `DRAG_CONFIG.txt` configuration file:
-
+You can modify the default processing behavior by editing the `DRAG_CONFIG.txt` file:
 ```ini
 [DRAG_SETTINGS]
-SCALE=1920x1080
-SHARPNESS=5
+QUALITY=med
 FPS=60
 INTERPOLATE=oversample
-QUALITY=med
-VERBOSE=false
+SCALE=1920x1080
+SHARPNESS=5
+HDR=false
 SHUTDOWN=false
 ```
-
----
-
 ### Method 2: PowerShell Terminal (Advanced Control)
-The original method for full control over processing parameters. Navigate to your project directory inside PowerShell (Example):
-
+Navigate to your project directory inside PowerShell:
 ```powershell
 cd "D:\FSRIFS"
 ```
 
-Now you can interact with the two core scripts:
+#### 1. `fsrifs.ps1` (Main Engine Script)
+This is the core modular script used for upscaling and frame interpolation. Customize it using the following command-line arguments:
 
-#### 1. `process.ps1` (Main Engine)
-This is the main modular script used for upscaling and frame interpolation. You can customize the process using command-line arguments:
-
-* `-file "path\video.mp4"`: The absolute path to your source video (must be enclosed in quotation marks).
-* `-scale factor|resolution`: Target dimension. Can be a decimal multiplier (e.g., `1.5` scales 720p to 1080p) or a literal resolution (e.g., `"1920x1080"`). If omitted, upscaling is skipped.
+* `-file "path\video.mp4"`: Absolute path to the source video file (supports `.mp4` and `.mkv`).
+* `-folder "path\directory"`: Absolute path to a folder for batch video processing.
+* `-scale factor|resolution`: Target dimension. Can be a decimal multiplier (e.g., `1.5` scales 720p to 1080p) or a literal resolution string (e.g., `"1280x720"`, `"1920x1080"`, `"2560x1440"`, `"3840x2160"`). If omitted, upscaling is skipped.
 * `-fps [number]`: Target framerate (e.g., `60`). If omitted, frame generation is skipped.
-* `-interpolate "none|oversample|mitchell_clamp|linear"`: Defines the interpolation method. If omitted, defaults to "none".
+* `-interpolate "none|oversample|mitchell_clamp|linear"`: Controls temporal smoothness. Defaults to `"none"`.
+  * `none`: Pure frame duplication (Nearest Neighbor). Maximum GPU savings, crisp visuals, absolutely no ghosting.
+  * `oversample`: Smooth Motion sampling. Blends frames only when needed, preserving the natural appearance.
+  * `mitchell_clamp`: High-quality smooth interpolation. Eliminates ringing and artifacts (requires modern GPU/RTX).
+  * `linear`: Linear blend overlay. Extremely lightweight, ideal for older configurations.
 * `-quality "low|med|big"`: Compression profile. Defaults to balanced `med`.
-  * `low`: Focuses on aggressive space saving and reduces VRAM overhead. Small file size.
-  * `med`: The ideal sweet spot. Preserves edge sharpness and fidelity without bloating storage.
-  * `big`: Maximum visual fidelity and high bitrate, meant for archival. Generates massive files.
-* `-sharpness [0-10]`: FSR sharpness filtering layer. Ranges from `0` (min) to `10` (max).
-* `-v`: Verbose mode. Prints detailed processing logs directly to the console.
-* `-shutdown`: Shuts down the computer after the process finishes..
+  * `low`: Low VRAM overhead, aggressive space-saving, small file size.
+  * `med`: Sweet spot. Preserves edge sharpness without bloating storage.
+  * `big`: Maximum visual fidelity and high bitrate, meant for archival.
+* `-sharpness [0-10]`: FSR sharpness filtering strength, ranging from `0` to `10`.
+* `-hdr "false|true"`: Enables High Dynamic Range processing. *Warning: This is NOT "High Definition" (HD). Enabling this on standard non-HDR videos will distort colors and brightness.*
+  * `false`: Standard color space.
+  * `true`: Forces FSR to use PQ color space (only use if source video is HDR10/PQ).
+* `-shutdown "false|true"`: Computer shutdown behavior. Defaults to `false`.
+  * `true`: Triggers a 30-second countdown upon completion. Press `[ENTER]` to shut down immediately, or `[ESC]` to cancel.
+* `-hud_port [number]`: Overrides the default TCP port used for HUD communication.
+* `-verbose`: Overrides the default logging behavior to enable detailed verbose output.
 
-> 🔒 **Safety Rule:** You must specify at least one action parameter: either `-scale` or `-fps` for the script to execute.
+🔒 **Safety Rule:** You must specify either `-file` or `-folder` (never both). The script strictly requires at least one action parameter: `-scale` or `-fps`.
 
-##### Command Examples:
+##### Terminal Command Examples:
 * **Upscale Only (720p to 1080p, medium sharpness):**
-```powershell
-.\process.ps1 -file "C:\path\video.mp4" -scale 1.5 -sharpness 5
-```
-* **Frame Generation Only (30fps to 60fps):**
-```powershell
-.\process.ps1 -file "C:\path\video.mp4" -fps 60 -interpolate=linear
-```
-* **Full Processing Pipeline (1080p Upscale + 60 FPS + Detailed Logs):**
-```powershell
-.\process.ps1 -file "C:\path\video.mp4" -scale "1920x1080" -fps 60 -interpolate="mitchell_clamp" -v 
-```
+  ```powershell
+  .\fsrifs.ps1 -file "C:\path\video.mp4" -scale 1.5 -sharpness 5
+  ```
+* **Frame Generation Only (30fps to 60fps with linear blending):**
+  ```powershell
+  .\fsrifs.ps1 -file "C:\path\video.mp4" -fps 60 -interpolate linear
+  ```
+* **Full Pipeline (1080p Upscale + 60 FPS + Mitchell Clamp):**
+  ```powershell
+  ```powershell
+  .\fsrifs.ps1 -file "C:\path\video.mp4" -scale "1920x1080" -fps 60 -interpolate mitchell_clamp
+  ```
+* **Batch Processing Folder (Big Quality + 1.5x Upscale + Max Sharpness):**
+  ```powershell
+  .\fsrifs.ps1 -folder "C:\my_videos\" -quality big -scale 1.5 -sharpness 10
+  ```
 
 ##### Output File Naming Convention
-The output video is automatically saved in the same directory as your source file using intelligent suffixes:
+Output videos are saved directly in the source directory using dynamic suffixes:
 * **Upscale only:** `video_FSR_1080x720.mp4`
-* **Frames only:** `video_60fps.mp4`
-* **Full pipeline:** `video_FSR_1080x720_60fps.mp4`
+* **Frames only:** `video_IFS_60fpsLINEAR.mp4`
+* **Full pipeline:** `video_FSR_1080x720_IFS_60fpsLINEAR.mp4`
 
 ---
 
-#### 2. `extract.ps1` (Quality Inspection Tool)
-An optional utility script designed to extract video frames into separate image files, allowing you to examine the visual quality frame-by-frame.
+## 📊 HUD, Logs, and Global Configuration
+
+### Real-Time HUD Monitoring
+The pipeline handles videos using FFmpeg in the background. However, processing data is streamed step-by-step to the **FSRIFS HUD** interface through a local **TCP socket connection**. 
+
+### Global Settings (`config.ini`)
+You can tweak global parameters by editing the `config.ini` file located at the project root:
+
+```ini
+[FSRIFS_SETTINGS]
+HUD_PORT=4867
+VERBOSE=false
+```
+* `HUD_PORT`: The TCP port used for communication between FFmpeg and the FSRIFS HUD (Default: `4867`).
+* `VERBOSE`: Defines log details (`false` for basic logs; `true` for full troubleshooting information). *All execution logs are stored inside the `log` folder.*
+
+---
+
+## 🔍 Quality Inspection Tool (`extract.ps1`)
+
+An utility script designed to extract specific video segments frame-by-frame into image files, allowing precise visual quality assessments.
 
 ```powershell
 .\extract.ps1 -file "C:\path\video.mp4" [arguments]
 ```
-
-* `-file "path"`: The full path to the video (enclosed in quotation marks).
-* `-time "hh:mm:ss"`: Start time for extraction. Defaults to `00:00:03`.
-* `-secs [number]`: Extraction duration in seconds. Defaults to `1` second (extracts 60 frames if the video is 60 FPS).
-* `-output "path"`: Destination directory. Defaults to the `output` folder in the project root.
+* `-file "path"`: Absolute path to the processed video.
+* `-time "hh:mm:ss"`: Timestamp to start the extraction (Default: `00:00:03`).
+* `-secs [number]`: Duration of the clip to convert into images (Default: `1` second, which yields 60 image files if the video runs at 60 FPS).
+* `-output "path"`: Target directory for the images (Default: creates an `output` folder in the project root).
 
 ---
 
-## ⚠️ Known Limitations & Technical Artifacts
+## ⚠ Known Limitations & Technical Artifacts
 
 ### Blurry or Softened Static Frames (Freeze Frame Artifacts)
-* **Symptom:** When pausing the final video during fast-motion sequences, the static frame may look soft, blurry, or show a "ghosting" effect.
-* **Causa:** Your media player paused precisely on an intermediate, interpolated frame mathematically generated by the temporal shader logic.
-* **Solution:** This behavior is expected by design. It is a necessary mechanic to guarantee the illusion of motion smoothness on low-end systems without requiring heavy hardware neural engines.
+* **Symptom:** Pausing the final video during fast-motion sequences can show a soft, blurry, or "ghosting" effect.
+* **Cause:** The media player froze exactly on an intermediate, interpolated frame mathematically generated by the temporal shader logic.
+* **Solution:** *This behavior is expected by design.* It is the necessary mechanic to guarantee smooth motion perception on low-end systems without requiring heavy machine learning hardware or Tensor Cores.
 
-> 📝 **Important Note:** FSR technology is fine-tuned for digital graphics. This pipeline is strictly optimized for **video game gameplays** (polygon edges, texture rendering). Applying it to real-life camera recordings or movies will break the processing logic and yield poor results.
-
-## 📌 Updates & Version History
-See the [CHANGELOG.md](docs/CHANGELOG.md) file for full details on recent bug fixes and performance improvements.
+📝 **Important Compatibility Note:** FSR technology is fine-tuned for digital graphics. This pipeline is strictly optimized for **video game gameplays** (polygon edges, texture rendering). Applying it to real-life camera recordings, movies, or series will break the processing logic and yield poor results.
 
 ---
 
@@ -154,9 +170,12 @@ See the [CHANGELOG.md](docs/CHANGELOG.md) file for full details on recent bug fi
 
 * **Core Component (FFmpeg):** Build N-125258-gdf94900c98-20260624. Licensed under *GNU LGPL v2.1+* or *GNU GPL v2.0+*.
 * **Rendering Engine and Interpolate (libplacebo):** Compiled natively inside the core binary. Licensed under *GNU LGPL v2.1+*.
-* **Spatial Scaling (AMD FidelityFX FSR v1.0.2):** Developed by AMD Inc. Distributed under the *MIT License* port glsl by agyild.
+* **Spatial Scaling (AMD FidelityFX FSR v1.0.2):** Developed by AMD Inc. Distributed under the *MIT License* (port GLSL by agyild).
+* **Pipeline Integration & Automation Scripts:** Developed by **Aless (MaulSmoke)**. Distributed under the *MIT License*.
 
 ### Support & Community
 * **Pipeline Integration, Concept:** Aless (MaulSmoke).
 * **Official YouTube Channel:** Watch tutorials, benchmarks, performance showcases, and interact with the community: [YouTube (@toplayaless)](https://www.youtube.com/playlist?list=PLae7RZ7VAOWk).
 * **Official Reddit Community:** Share your experience, ask questions, and engage with other users: [Reddit (r/FSRIFS)](https://www.reddit.com/r/FSRIFS/).
+* **Official Buy me a Coffee:** FSRIFS is free, but development is limited. Consider buying me a coffee: [buymeacoffee (fsrifs)](https://buymeacoffee.com/fsrifs).
+```
