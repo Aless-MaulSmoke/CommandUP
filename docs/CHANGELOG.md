@@ -1,10 +1,18 @@
+## [v1.2.0] - 2026-07-29
+
+* **Script**: `process.ps1` renamed to `fsrifs.ps1`.
+* **Socket-based HUD**: FFmpeg no longer renders the HUD; instead, it sends process statistics via a socket. FSRIFS reads this data and renders a more coherent HUD.
+* **New configuration file**: `config.ini` created; allows setting the TCP port used for HUD communication.
+* **New parameter `-hud_port`**: This parameter can be set via the console (`-hud_port`) or by editing `config.ini`.
+* **`-v` (Verbose) parameter**: Moved from `Drag_Config.txt` to `config.ini`; still accessible via the console using `-verbose`. Its behavior has changed: the HUD is no longer cluttered with complex debug output; all information is now written solely to the log.
+
+
 ## [v1.1.2] - 2026-07-26
 
 * **Timer bug**: Fixed an inconsistency in the display of the original video time and the total elapsed time.
 * **Final report**: The process's final report now displays results for batches of files processed in the folder, even if only a single valid file was processed.
 * **Shutdown error**: Fixed a bug that stopped the computer shutdown countdown if the terminal window did not have focus.
 * **Fake warnings**: Fake warnings when sending parameters via the console without specifying -drag config.
-
 
 ## [v1.1.1] - 2026-07-21
 * **Bug Fix / GPU Support**: Support for integrated AMD Vega is included as well.

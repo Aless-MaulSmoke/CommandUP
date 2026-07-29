@@ -194,7 +194,7 @@ FPS=60
 INTERPOLATE=oversample
 SCALE=1920x1080
 SHARPNESS=5
-VERBOSE=false
+HDR=false
 SHUTDOWN=false
 	</code></pre>
 
@@ -204,10 +204,11 @@ SHUTDOWN=false
     <pre><code>cd "D:\FSRIFS"</code></pre>
     <p>Você estará assim na pasta da pipeline e poderá executar dois scripts:</p>
 
-    <h3>1. <code>process.ps1</code></h3>
+    <h3>1. <code>fsrifs.ps1</code></h3>
     <p>Nosso script principal, com ele podemos fazer upscaling e ou frame interpolation. O script atua de forma modular, você pode acessar esses módulos através de parâmetros na linha de comando, vamos conhecer eles:</p>
     <ul>
-        <li><code>-file "nome_do_arquivo.mp4"</code>: O caminho completo do arquivo de vídeo que você deseja processar. Deve ser colocado entre aspas.</li>
+        <li><code>-file "caminho_nome_do_arquivo"</code>: O caminho completo do arquivo de vídeo que você deseja processar. Deve ser colocado entre aspas. Formatos suportados: mp4 e mkv.</li>
+        <li><code>-folder "caminho_nome_da_pasta"</code>: O caminho completo da pasta com vídeos que você deseja processar em lote. Deve ser colocado entre aspas.</li>
         <li><code>-scale fator|resolução</code>: Dimensão final do vídeo. Se omitido, o upscale não acontece e o tamanho original é mantido. O valor pode ser informado nos formatos:
             <ul>
                 <li>fator multiplicador para o ganho de resolução. Use números decimais (ex: o fator de dimensão de um vídeo de 720p para 1080p é <code>1.5</code>).</li>
@@ -238,10 +239,10 @@ SHUTDOWN=false
             </ul>
         </li>
         <li><code>-sharpness número</code>: Qualidade aplicada pelo FSR indo de <code>0</code> (mínimo) até <code>10</code> (máximo).</li>
-        <li><code>-v</code>: Modo verbose, onde informações detalhadas sobre o processo são listadas no terminal pelo FFmpeg.
+        <li><code>-hdr "false|true"</code>: Ativa o processamento de high dynamic range (HDR) dentro do FSR. AVISO: Isso NÃO é qualidade de "Alta Definição" (HD)! Ativar essa opção em um vídeo comum (não HDR) arruinará as cores e distorcerá o brilho.
             <ul>
-                <li><code>false</code>: Exibe dados básicos de processamento.</li>
-                <li><code>true</code>: Exibe dados detalhados e elaborados de processamento.</li>
+                <li><code>false</code>: Utiliza equações padrão do espaço de cores. Ideal para conteúdo normal não HDR.</li>
+                <li><code>true</code>: Força o FSR a utilizar o espaço de cores PQ. DEVE SER ATIVADO APENAS se o vídeo de origem possuir gama PQ (HDR10).</li>
             </ul>
 		</li>
         <li><code>-shutdown "false|true"</code>: O perfil de peso, compressão e tamanho do arquivo final. Se você omitir este parâmetro, o sistema assumirá automaticamente o perfil equilibrado <code>"med"</code>. As opções disponíveis são:
@@ -251,28 +252,49 @@ SHUTDOWN=false
             </ul>
         </li>
     </ul>
-
+	
     <div class="note">
-        <strong>Nota de Segurança:</strong> O script exige que você use pelo menos o <code>-scale</code> ou o <code>-fps</code>.
+        <strong>Nota de Segurança:</strong> Você deve informar obrigatóriamente <code>-file</code> ou <code>-folder</code>, nunca ambos. O script exige que você use pelo menos o <code>-scale</code> ou o <code>-fps</code>.
     </div>
 
-    <h4>Exemplos de Comandos:</h4>
+    <h3>Exemplos de Comandos:</h3>
     <p><strong>Fazer APENAS o Upscale (digamos que de 720p para 1080p, com nitidez mediana, então aplicamos uma escala de 1.5x e nitidez 5):</strong></p>
-    <pre><code>.\process.ps1 -file "C:\pasta\video.mp4" -scale 1.5 -sharpness 5</code></pre>
+    <pre><code>.\fsrifs.ps1 -file "C:\pasta\video.mp4" -scale 1.5 -sharpness 5</code></pre>
 
-    <p><strong>Fazer APENAS a Geração de Frames (digamos que seu vídeo original tem 30fps):</strong></p>
-    <pre><code>.\process.ps1 -file "C:\pasta\video.mp4" -fps 60</code></pre>
+    <p><strong>Fazer APENAS a Interpolação de Frames (digamos que seu vídeo original tem 30fps):</strong></p>
+    <pre><code>.\fsrifs.ps1 -file "C:\pasta\video.mp4" -fps 60 -interpolate linear</code></pre>
 
-    <p><strong>Pipeline Completa (Upscale 1080p + geração de frames 60 FPS + verificando um log detalhado no prompt):</strong></p>
-    <pre><code>.\process.ps1 -file "C:\pasta\video.mp4" -scale "1920x1080" -fps 60 -v</code></pre>
+    <p><strong>Pipeline Completa (Upscale 1080p + Nitidez + geração de frames 60 FPS):</strong></p>
+    <pre><code>.\fsrifs.ps1 -file "C:\pasta\video.mp4" -scale "1920x1080" -Sharpness 8 -fps 60 </code></pre>
 
-    <h4>Nomenclatura dos Arquivos de Saída</h4>
+    <p><strong>Processar vídeos em uma pasta (Qualidade quantitativa + Upscale 1.5x + Nitidez):</strong></p>
+    <pre><code>.\fsrifs.ps1 -folder "C:\pasta lote\" -quality big -scale 1.5 -Sharpness 10 </code></pre>
+
+    <h4>Nomeclatura dos Arquivos de Saída</h4>
     <p>O script irá identificar a origem do seu arquivo e salva o resultado final exatamente na mesma pasta do vídeo original. O nome do novo arquivo é gerado de forma inteligente com sufixos baseados no que você escolheu fazer:</p>
     <ul>
         <li>Se processou apenas o upscaling: <code>video_FSR_1080x720.mp4</code>.</li>
         <li>Se processou apenas o frame interpolated: <code>video_IFS_60fpsLINEAR.mp4</code>.</li>
         <li>Se processou a pipeline completa: <code>video_FSR_1080x720_IFS_60fpsLINEAR.mp4</code>.</li>
     </ul>
+
+    <h3>Andamento do processo na HUD e em Log</h3>
+    <p>A pipeline usa o FFmpeg em segundo plano para tratar os videos. Todo o processamento é acompanhado passo a passo na hud do FSRIFS que recebe os dados de andamento do FFmpeg através de um socket TCP. Todos os dados de avaliação são armazenados na pasta log da pipeline, você pode identificar esses arquivos pelo nome.</p>
+    <p>Existe um arquivo config.ini na raíz da pipeline. nesse arquivo podemos configurar dois parametros:</p>
+    <ul>
+        <li><code>HUD_PORT número</code>: Porta tcp usada para comunicação do FSRIFS com o FFmpeg para dados da HUD. Padrão 4867</li>
+        <li><code>VERBOSE "false|true"</code>: Define o nivel de detalhe na escrita do arquivo de log. 
+            <ul>
+                <li><code>false</code>: Desativa detalhamento, escrevendo informações simples no log.</li>
+                <li><code>true</code>: Ativa Verbose, escrevendo informações detalhadas no log.</li>
+            </ul>
+		</li>
+    </ul>
+    <p>Caso exista necessidade, você pode configurar o script <code>fsrifs.ps1</code> usando os parametros diretamente no console: <code>-hud_port número</code> e <code>-verbose</code>, ou se preferir editando o arquivo <code>config.ini</code>:</p>
+    <pre><code>[FSRIFS_SETTINGS]
+HUD_PORT=4867
+VERBOSE=false
+	</code></pre>
 
     <h3>2. <code>extract.ps1</code></h3>
     <p>Script para extrair alguns frames do vídeo processado para você poder avaliar via frame se o resultado está bom. Você pode extrair todos os frames de x segundos iniciando em um determinado tempo do vídeo. É a ferramenta ideal para você avaliar visualmente a qualidade do resultado final, permitindo conferir frame por frame.</p>
@@ -287,7 +309,7 @@ SHUTDOWN=false
     <h2>Problemas Conhecidos / Limitações Técnicas</h2>
     <h3>Borrão ou Suavização ao Pausar (Freeze Frame Artifacts)</h3>
     <ul>
-        <li><strong>Sintoma:</strong> Ao pausar o vídeo final durante cenas de movimentação rápida, a imagem pode parecer suave, borrada ou apresentar um efeito de "fantasma".</li>
+        <li><strong>Sintoma:</strong> Ao pausar o vídeo final durante cenas de movimentação rápida que usaram interpolação, a imagem pode parecer suave, borrada ou apresentar um efeito de "fantasma".</li>
         <li><strong>Causa:</strong> O player de vídeo congelou o relógio de reprodução exatamente em cima de um quadro intermediário (interpolado) gerado pela matemática de interpolação.</li>
         <li><strong>Solução:</strong> Não há o que corrigir. Esse comportamento é a mecânica necessária para garantir a ilusão de fluidez na geração de frames com o vídeo em movimento, sem exigir IA pesada ou hardware com Tensor Cores. É o preço que se paga para uma solução voltada a low-end PC.</li>
     </ul>
@@ -303,8 +325,9 @@ SHUTDOWN=false
 
     <h2>Canais Sociais:</h2>
     <ul>
-        <li><strong>Canal Oficial do Projeto (YouTube):</strong> Assista aos tutoriais, novidades, showcase de performance e tire suas dúvidas diretamente na comunidade do canal: <a href="https://www.youtube.com/playlist?list=PLae7RZ7VAOWk" target="_blank">Canal do YouTube</a>.</li>
-		<li><strong>Canal Oficial do Projeto (reddit):</strong> Comente, compartilhe sua experiência, tire suas dúvidas diretamente na comunidade do canal: <a href="https://www.reddit.com/r/FSRIFS/" target="_blank">Comunidade reddit</a>.</li>
+        <li><strong>Canal Oficial (YouTube):</strong> Assista aos tutoriais, novidades, showcase de performance e tire suas dúvidas diretamente na comunidade do canal: <a href="https://www.youtube.com/playlist?list=PLae7RZ7VAOWk" target="_blank">Canal do YouTube</a>.</li>
+		<li><strong>Canal Oficial (reddit):</strong> Comente, compartilhe sua experiência, tire suas dúvidas diretamente na comunidade do canal: <a href="https://www.reddit.com/r/FSRIFS/" target="_blank">Comunidade reddit</a>.</li>
+		<li><strong>Canal Oficial (buymeacoffee):</strong> O FSRIFS é gratuito, mas o desenvolvimento é limitado. Considere me pagar um café: <a href="https://buymeacoffee.com/fsrifs" target="_blank">Acesse e apoie</a>.</li>
     </ul>
 </div>
 
