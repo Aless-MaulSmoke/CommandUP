@@ -1,33 +1,48 @@
-## [v1.2.0] - 2026-07-29
+# 📜 CHANGELOG: CommandUP & FSRIFS History
 
-* **Script**: `process.ps1` renamed to `fsrifs.ps1`.
-* **Socket-based HUD**: FFmpeg no longer renders the HUD; instead, it sends process statistics via a socket. FSRIFS reads this data and renders a more coherent HUD.
-* **New configuration file**: `config.ini` created; allows setting the TCP port used for HUD communication.
-* **New parameter `-hud_port`**: This parameter can be set via the console (`-hud_port`) or by editing `config.ini`.
-* **`-v` (Verbose) parameter**: Moved from `Drag_Config.txt` to `config.ini`; still accessible via the console using `-verbose`. Its behavior has changed: the HUD is no longer cluttered with complex debug output; all information is now written solely to the log.
+All notable changes to this project will be documented in this file. This project adheres to Semantic Versioning.
 
+---
 
-## [v1.1.2] - 2026-07-26
+## ☕ CommandUP Era
 
-* **Timer bug**: Fixed an inconsistency in the display of the original video time and the total elapsed time.
-* **Final report**: The process's final report now displays results for batches of files processed in the folder, even if only a single valid file was processed.
-* **Shutdown error**: Fixed a bug that stopped the computer shutdown countdown if the terminal window did not have focus.
-* **Fake warnings**: Fake warnings when sending parameters via the console without specifying -drag config.
+### CUP [v1.0.1] - 2026-08-03
+* **Project Renamed:** *FSRIFS* has been officially renamed to **CommandUP**, with the abbreviation **(cup)**. This change brings a fresh perspective and simplifies the pronunciation of the pipeline. May CommandUP become an incredible tool for everyone.
+* **New `-gpu_id` Parameter:** For multi-GPU configurations, you can now specify which graphics card to use via its hardware ID number. This parameter can be set dynamically in the console (`-gpu_id`) or globally by editing the `config.ini` file.
+* **HUD Layout Update:** Adjusted and refined the visual format in which real-time video processing statistics are displayed.
 
-## [v1.1.1] - 2026-07-21
-* **Bug Fix / GPU Support**: Support for integrated AMD Vega is included as well.
+---
 
-## [v1.1.0] - 2026-07-20
-* **Architecture Refactoring**: Fully migrated the internal codebase from a rigid procedural structure to a clean, modular architecture for better maintainability and faster command execution.
-* **Bug Fix / Multi-GPU Support**: Resolved hardware lock restrictions. The pipeline, which previously ran exclusively on AMD graphics cards, now fully supports NVIDIA and Intel hardware (both dedicated and integrated chips) through the Vulkan API. The videos are now encoded in H.264 format.
-* **Color format Metadata**: The video generated now follows the same color format as the original video, but the Color Range must necessarily follow the Limited format.
-* **Migration to Native Interpolation (Core Engine)**: Retired the custom internal shader due to compatibility constraints. The pipeline now natively utilizes libplacebo's high-performance algorithms (`oversample`, `linear`, `mitchell_clamp`) via FFmpeg filters.
-* **Acronym Meaning Update**: Redefined the **IFS** acronym to mean **Interpolated Frame Sampling** to align with the new native backend architecture.
-* **Added Shutdown parameter**: New feature for automatically shutting down the computer once the video post-processing is finished.
-* **Added -drag_config parameter**: Allows dynamically loading all pipeline settings straight from the `DRAG_CONFIG.txt` configuration file.
-* **Added -folder parameter**: New feature for batch processing files. (Send a folder with separate videos to process).
+## 🛡️ FSRIFS Legacy Era
 
-## [v1.0.1] - 2026-07-14
-* Fixed a bug where using FSR + IFS simultaneously could cause the FSR upscale to be ignored, resulting in a basic image stretching without real processing.
+### FSRIFS [v1.2.0] - 2026-07-29
+* **Script Refactoring:** Renamed the core execution script from `process.ps1` to `fsrifs.ps1`.
+* **Socket-Based HUD Architecture:** Offloaded the HUD rendering workload from FFmpeg. The core engine now streams raw processing statistics via a local TCP socket. FSRIFS reads this live data stream to render a much cleaner, responsive, and coherent terminal HUD.
+* **New Configuration File:** Introduced `config.ini` to the project root, allowing users to manually bind and customize the specific TCP port used for HUD communication.
+* **New `-hud_port` Parameter:** Added terminal level overrides for the communication port via console (`-hud_port`) or by editing the `config.ini` file.
+* **Verbose Log Relocation:** Moved the `-v` (Verbose) flag settings from `Drag_Config.txt` into the global `config.ini` file. The parameter remains accessible via the terminal using `-verbose`. Its behavior was optimized: complex debug outputs no longer clutter the active terminal HUD; all diagnostic data is now routed strictly to the background log file.
 
-## [v1.0.0] - 2026-07-10
+### FSRIFS [v1.1.2] - 2026-07-26
+* **Timer Bug Fix:** Resolved a calculation inconsistency that caused incorrect formatting when displaying the original video length alongside the total elapsed processing time.
+* **Final Report Enhancement:** The execution wrap-up report now reliably displays comprehensive metrics for folder-wide batch processing, even if only a single valid video file was present.
+* **Shutdown Handshake Error Fix:** Fixed an edge-case bug that completely halted the 30-second computer shutdown countdown if the terminal window lost active window focus.
+* **Fake Warning Mitigation:** Suppressed phantom warnings that triggered when piping custom arguments directly through the console without explicitly defining a `-drag` config payload.
+
+### FSRIFS [v1.1.1] - 2026-07-21
+* **Bug Fix / Hardware Support:** Added native support for integrated AMD Vega graphics processing units.
+
+### FSRIFS [v1.1.0] - 2026-07-20
+* **Architecture Refactoring:** Fully migrated the internal codebase from a rigid procedural structure to a clean, modular architecture for better long-term maintainability and faster command execution.
+* **Multi-Vendor GPU Support:** Eliminated restrictive hardware lock assumptions. The pipeline, which previously ran exclusively on AMD graphics cards, now fully supports NVIDIA and Intel hardware (both dedicated and integrated chips) through the Vulkan API. Output videos are now encoded in H.264 format.
+* **Color Format Metadata:** Generated videos now actively inherit the color format of the original source video, while enforcing a strict Limited Color Range format for maximum metadata stability.
+* **Native Core Interpolation Migration:** Retired the custom internal shader due to edge-case compatibility constraints. The pipeline now natively utilizes libplacebo's high-performance algorithms (`oversample`, `linear`, `mitchell_clamp`) directly via custom FFmpeg filterchains.
+* **Acronym Re-definition:** Formally redefined the **IFS** acronym to stand for **Interpolated Frame Sampling** to better align with the new native backend architecture.
+* **Automated Shutdown Feature:** Implemented an automatic system shutdown sequence that triggers immediately after video post-processing completes.
+* **Added `-drag_config` Flag:** Enabled support for dynamically pulling runtime settings straight from the local `DRAG_CONFIG.txt` configuration asset.
+* **Added `-folder` Batch Processing:** Introduced automated folder-wide batch processing, allowing the execution script to queue and process separate video targets sequentially.
+
+### FSRIFS [v1.0.1] - 2026-07-14
+* **Filterchain Race Condition Fix:** Fixed a critical bug where executing FSR and IFS concurrently caused the FSR upscale shader block to be skipped entirely, resulting in basic canvas stretching with no actual edge reconstruction.
+
+### FSRIFS [v1.0.0] - 2026-07-10
+* **Initial Release:** Official public launch of the standalone FSR + IFS video post-processing pipeline ecosystem.

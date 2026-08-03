@@ -2,7 +2,7 @@
                         CREDITS & LICENSE ATTRIBUTIONS
 ================================================================================
 
-FSRIFS v1.2.0 by Aless (MaulSmoke)
+CommandUP Pipeline v1.0.0 by Aless (MaulSmoke)
 
 This standalone package distributes a modular post-processing pipeline composed 
 of open-source tools integrated with custom, authorial automation logic. 
@@ -18,7 +18,7 @@ Listed below are the copyrights and licenses for each individual component:
   static linking of graphics libraries, this specific binary operates under GPL.
 * SAFETY NOTE: This binary was compiled specifically with native and stable 
   support for 'libplacebo'. DO NOT replace or update this executable file with 
-  generic versions, or the FSRIFS pipeline will stop working.
+  generic versions, or the CommandUP pipeline will stop working.
 
 --------------------------------------------------------------------------------
 2. RENDERING & INTERPOLATION LIBRARY (IFS): libplacebo
@@ -41,9 +41,9 @@ Listed below are the copyrights and licenses for each individual component:
   for physical edge reconstruction and high-fidelity resizing without using AI.
 
 --------------------------------------------------------------------------------
-4. PIPELINE INTEGRATION SCRIPTS: FSRIFS
+4. CUP PIPELINE INTEGRATION SCRIPTS:
 --------------------------------------------------------------------------------
-* Version Used: v1.1.0 (Modular Architecture)
+* Version Used: v1.0.0 (Modular Architecture)
 * Developed by: Aless (MaulSmoke)
 * Applicable License: MIT License (free and permissive open-source license).
 * Details: Custom authorial automation logic responsible for orchestrating the 

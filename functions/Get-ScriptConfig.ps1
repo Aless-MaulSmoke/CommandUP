@@ -19,16 +19,17 @@ function Get-ScriptConfig {
 		drag_config = $false
 		hud_port    = $null
 		verbose     = $null
+		gpu_id      = $null
     }
 
 	# Descobre a pasta raiz subindo um nível a partir da pasta 'functions'
-	$caminhoDragConfig = Join-Path $Global:FSRIFS_ROOT "DRAG_CONFIG.txt"
-	$caminhoConfigIni  = Join-Path $Global:FSRIFS_ROOT "CONFIG.ini"
+	$caminhoDragConfig = Join-Path $Global:CUP_ROOT "DRAG_CONFIG.txt"
+	$caminhoConfigIni  = Join-Path $Global:CUP_ROOT "CONFIG.ini"
 
 	# Carrega parametros do config.ini
 	if (Test-Path $caminhoConfigIni) {
 		# Busca apenas as chaves necessárias no arquivo de texto
-		$chavesNecessarias = @("HUD_PORT", "VERBOSE")
+		$chavesNecessarias = @("HUD_PORT", "VERBOSE", "gpu_id")
 		$conteudoTxt = Get-Content $caminhoConfigIni
 
 		foreach ($chave in $chavesNecessarias) {
@@ -49,8 +50,6 @@ function Get-ScriptConfig {
 	foreach ($prop in $propriedadesValidas) {
 		$config.$($prop.Key.ToLower()) = $prop.Value
 	}
-
-	
 
 	# Verifica se o parâmetro de comando -drag_config foi informado pelo usuário
 	$usaDragConfig = $BoundParameters.ContainsKey('drag_config') -and $BoundParameters['drag_config'] -eq $true
@@ -99,6 +98,7 @@ function Get-ScriptConfig {
 		9 = "The 'shutdown' parameter only accepts true or false."
 		10 = "The 'hud_port' the parameter must be a valid integer number."
 		11 = "The 'verbose' parameter only accepts true or false."
+		12 = "The 'gpu_id' parameter must be a valid number."
     }
     $errosEncontrados = @()
 
@@ -161,19 +161,21 @@ function Get-ScriptConfig {
         $config.scale = $null 
     }
 
-    # valida: SHARPNESS
-    if ($null -ne $config.sharpness -and $config.sharpness -ne "") {
-        if ($config.sharpness -as [int]) {
-            $config.sharpness = [int]$config.sharpness
-            if ($config.sharpness -lt 0 -or $config.sharpness -gt 10) {
-                $errosEncontrados += 7
-            }
-        } else {
-            $errosEncontrados += 7
-        }
-    } else {
-        $config.sharpness = 0 
-    }
+	# valida: SHARPNESS
+	if ($null -ne $config.sharpness -and $config.sharpness -ne "") {
+		# Correção: Armazena o resultado da conversão e valida se ela é válida (não nula)
+		$valorInt = $config.sharpness -as [int]
+		if ($null -ne $valorInt) {
+			$config.sharpness = $valorInt
+			if ($config.sharpness -lt 0 -or $config.sharpness -gt 10) {
+				$errosEncontrados += 7
+			}
+		} else {
+			$errosEncontrados += 7
+		}
+	} else {
+		$config.sharpness = 0 
+	}
 
     # valida: HDR
     $valorFinalHdr = $false
@@ -206,7 +208,7 @@ function Get-ScriptConfig {
         $config.hud_port = [int]$config.hud_port
     } else {
         if ($null -eq $config.hud_port -or $config.hud_port -eq "") { 
-            $config.hud_port = 30548 
+            $config.hud_port = 4867 
         } else { 
             $errosEncontrados += 10 
         }
@@ -224,6 +226,13 @@ function Get-ScriptConfig {
         }
     }
     $config.verbose = $valorFinalVerbose
+
+    # valida: GPU_ID
+    if ($config.gpu_id -ne $null -and $config.gpu_id -match '^\d+$' -and [int]$config.gpu_id -ge 0) {
+        $config.gpu_id = [int]$config.gpu_id
+    } else {
+        $errosEncontrados += 12
+    }
 
     # LOOP DE VERIFICAÇÃO DE ERROS
     if ($errosEncontrados.Count -gt 0) {

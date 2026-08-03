@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRACTICAL USE MANUAL: FSRIFS</title>
+    <title>PRACTICAL USE MANUAL: CommandUP</title>
     <style>
         :root {
             --bg-color: #f8f9fa;
@@ -150,43 +150,34 @@
 <body>
 
 <div class="container">
-    <h1>FSRIFS (FSR + IFS) Upscale + Frame Interpolator</h1>
+    <h1>CommandUP (cup) Upscale + Frame Interpolator</h1>
     <div class="subtitle">PRACTICAL USE MANUAL</div>
 
     <h2>Hardware Requirements and Dependencies</h2>
-    <p>For the post-processing pipeline to work correctly on your computer, your system must meet the following physical and software dependencies:</p>
+    <p>For the post-processing CUP Pipeline to work correctly on your computer, your system must meet the following physical and software dependencies:</p>
 
     <ul>
+        <li><strong>Engineered strictly for</strong>: Windows 10 and Windows 11 (64-bit). It relies on Windows native PowerShell scripting, Batch automation pipelines, and Windows-specific terminal bindings. Linux (including Wine/Proton) and macOS are NOT supported.</li>
         <li><strong>Vulkan API Compatibility <span class="badge">Required</span>:</strong> Your graphics card must have native support for Vulkan technology. It works on dedicated graphics cards (AMD RX, Nvidia GTX/RTX) as well as newer integrated chips (AMD Vega or Intel HD Graphics). If your GPU does not support Vulkan, the process will not start.</li>
-        <li><strong>Processor (CPU):</strong> Any basic 4 or 6-core processor (such as the AMD FX line or older generations Intel Core) is perfectly capable of running the pipeline. Average CPU usage is around 45%, leaving Windows completely free from freezes or overheating during rendering.</li>
+        <li><strong>Processor (CPU):</strong> Any basic 4 or 6-core processor (such as the AMD FX line or older generations Intel Core) is perfectly capable of running the CUP Pipeline. Average CPU usage is around 45%, leaving Windows completely free from freezes or overheating during rendering.</li>
         <li><strong>Video Memory (VRAM):</strong> Legacy graphics cards with 2GB of VRAM will handle the task smoothly if the user operates wisely. It is recommended to close web browsers, Discord, and background games before starting the process at high resolutions (such as 2K or 4K) to avoid running out of card memory.</li>
         <li><strong>Operating System:</strong> Windows 10 or Windows 11 64-bit with the execution of scripts enabled in the system PowerShell.</li>
     </ul>
 
     <div class="section-divider"></div>
     <h2>Installation</h2>
-    <ol>
+    <ul>
         <li>Start by downloading the zip file containing the content.</li>
-        <li>Extract it wherever you want. You will see the entire folder structure of <code>FSRIFS</code>.</li>
-        <li>The whole process takes place inside a PowerShell prompt (knowing basic folder navigation via commands is important).</li>
-        <li>Let's start by opening PowerShell; it does not need to be in administrator mode, as the script will not require privileges to run.</li>
-    </ol>
-
-    <p>If this is your first time running scripts on your computer, type the command below to allow script execution:</p>
-    <pre><code>Set-ExecutionPolicy Bypass -Scope Process</code></pre>
-    <p>Answer <strong>YES</strong> to apply the execution policy.</p>
-
-    <div class="section-divider"></div>
-
-    <h2>How to Run</h2>
-    <p>Okay! Now we are ready to run the processes, and you can do this in two ways:</p>
+        <li>Extract it wherever you want. You will see the entire folder structure of <code>CommandUP</code>.</li>
+    </ul>
+	<p>Okay! Now we are ready to run the processes, and you can do this in two ways:</p>
 
     <h3>Method 1: Drag & Drop</h3>
-    <p>This is the easiest way to run the pipeline, aimed at users with no prompt knowledge. Here you can process a video individually or multiple pre-selected files inside a folder.</p>
+    <p>This is the easiest way to run the CUP Pipeline, aimed at users with no prompt knowledge. Here you can process a video individually or multiple pre-selected files inside a folder.</p>
     <ol>
-        <li>Using file explorer, access your folder where you unzipped <code>FSRIFS</code>; you will see a file named <code>DRAG HERE.bat</code>.</li>
+        <li>Using file explorer, access your folder where you unzipped <code>CommandUP</code>; you will see a file named <code>DRAG_HERE.bat</code>.</li>
         <li>Now open another file explorer window and go to the location where the file or folder you want to process is located.</li>
-        <li>Drag your video or folder and drop it onto the DRAG HERE file.</li>
+        <li>Drag your video or folder and drop it onto the DRAG_HERE file.</li>
     </ol>
 
     <p>You can configure the process by editing the file <code>DRAG_CONFIG.txt</code>:</p>
@@ -200,12 +191,20 @@ HDR=false
 SHUTDOWN=false</code></pre>
 
     <h3>Method 2: PowerShell (Terminal)</h3>
-    <p>This is the original method for you to process your videos, requiring prompt knowledge.</p>
-    <p>We need to access the local path where you unzipped FSRIFS. For example:</p>
-    <pre><code>cd "D:\FSRIFS"</code></pre>
-    <p>You will then be in the pipeline folder and can run two scripts:</p>
 
-    <h3>1. <code>fsrifs.ps1</code></h3>
+    <p>This is the original method for you to process your videos, requiring prompt knowledge. The whole process takes place inside a PowerShell prompt (knowing basic folder navigation via commands is important).</p>
+	<p>Let's start by opening PowerShell; it does not need to be in administrator mode, as the script will not require privileges to run. If this is your first time running scripts on your computer, type the command below to allow script execution:</p>
+    <pre><code>Set-ExecutionPolicy Bypass -Scope Process</code></pre>
+    <p>Answer <strong>YES</strong> to apply the execution policy.</p>
+
+    <h2>How to Run</h2>
+    <p>Okay! Now we are ready to run the processes, and you can do this in two ways:</p>
+
+    <p>We need to access the local path where you unzipped CommandUP. For example:</p>
+    <pre><code>cd "D:\CommandUP"</code></pre>
+    <p>You will then be in the CUP Pipeline folder and can run two scripts:</p>
+
+    <h3>1. <code>cup.ps1</code></h3>
     <p>Our main script; with it, we can perform upscaling and/or frame interpolation. The script is modular; you can access these modules through parameters in the command line. Let's get to know them:</p>
     <ul>
         <li><code>-file "path_to_file"</code>: The full path of the video file you want to process. It must be enclosed in quotes. Supported formats: mp4 and mkv.</li>
@@ -239,7 +238,7 @@ SHUTDOWN=false</code></pre>
                 <li><code>big</code>: Maximum visual fidelity and high bitrate, aimed at archiving or high-quality uploads. Generates a huge final file.</li>
             </ul>
         </li>
-        <li><code>-sharpness number</code>: Quality applied by FSR ranging from <code>0</code> (minimum) to <code>10</code> (maximum).</li>
+        <li><code>-sharpness number</code>: Sharpness applied by FSR ranging from <code>0</code> (minimum) to <code>10</code> (maximum).</li>
         <li><code>-hdr "false|true"</code>: Enables High Dynamic Range (HDR) processing inside FSR. WARNING: This is NOT "High Definition" (HD) quality! Enabling this option on a regular (non-HDR) video will ruin colors and distort brightness.
             <ul>
                 <li><code>false</code>: Uses standard color space equations. Ideal for normal non-HDR content.</li>
@@ -260,16 +259,16 @@ SHUTDOWN=false</code></pre>
 
     <h3>Command Examples:</h3>
     <p><strong>Perform ONLY Upscale (e.g., from 720p to 1080p, with medium sharpness, so we apply a 1.5x scale and sharpness 5):</strong></p>
-    <pre><code>.\fsrifs.ps1 -file "C:\folder\video.mp4" -scale 1.5 -sharpness 5</code></pre>
+    <pre><code>.\cup.ps1 -file "C:\folder\video.mp4" -scale 1.5 -sharpness 5</code></pre>
 
     <p><strong>Perform ONLY Frame Interpolation (e.g., your original video is 30fps and you want 60fps):</strong></p>
-    <pre><code>.\fsrifs.ps1 -file "C:\folder\video.mp4" -fps 60 -interpolate linear</code></pre>
+    <pre><code>.\cup.ps1 -file "C:\folder\video.mp4" -fps 60 -interpolate linear</code></pre>
 
     <p><strong>Full Pipeline (1080p Upscale + Sharpness 8 + 60 FPS frame generation):</strong></p>
-    <pre><code>.\fsrifs.ps1 -file "C:\folder\video.mp4" -scale "1920x1080" -sharpness 8 -fps 60</code></pre>
+    <pre><code>.\cup.ps1 -file "C:\folder\video.mp4" -scale "1920x1080" -sharpness 8 -fps 60</code></pre>
 
     <p><strong>Process videos in a folder (High Quality + 1.5x Upscale + Max Sharpness):</strong></p>
-    <pre><code>.\fsrifs.ps1 -folder "C:\batch folder\" -quality big -scale 1.5 -sharpness 10</code></pre>
+    <pre><code>.\cup.ps1 -folder "C:\batch folder\" -quality big -scale 1.5 -sharpness 10</code></pre>
 
     <h4>Output File Naming</h4>
     <p>The script will identify the source of your file and save the final result exactly in the same folder as the original video. The new file name is smartly generated with suffixes based on what you chose to do:</p>
@@ -278,23 +277,25 @@ SHUTDOWN=false</code></pre>
         <li>If only frame interpolation was processed: <code>video_IFS_60fpsLINEAR.mp4</code>.</li>
         <li>If the full pipeline was processed: <code>video_FSR_1080x720_IFS_60fpsLINEAR.mp4</code>.</li>
     </ul>
-    <h3>Process Progress in HUD and Log</h3>
-    <p>The pipeline uses FFmpeg in the background to handle videos. All processing is tracked step-by-step on the FSRIFS HUD, which receives progress data from FFmpeg through a TCP socket. All evaluation data is stored in the pipeline's log folder; you can identify these files by name.</p>
-    <p>There is a config.ini file in the root of the pipeline. In this file, we can configure two parameters:</p>
-    <ul>
-        <li><code>HUD PORT number</code>: TCP port used for FSRIFS communication with FFmpeg for HUD data. Default is 4867.</li>
-        <li><code>VERBOSE "false|true"</code>: Defines the level of detail when writing to the log file.
-            <ul>
-                <li><code>false</code>: Disables detailed writing, recording simple information in the log.</li>
-                <li><code>true</code>: Enables Verbose, writing highly detailed information in the log.</li>
-            </ul>
-        </li>
-    </ul>
 
-    <p>If needed, you can configure the <code>fsrifs.ps1</code> script using parameters directly in the console: <code>-hud_port number</code> and <code>-verbose</code>, or if you prefer, by editing the <code>config.ini</code> file:</p>
-    <pre><code>[FSRIFS SETTINGS]
-HUD PORT=4867
-VERBOSE=false</code></pre>
+    <h3>CUP Pipeline configuration</h3>
+	<p>CommandUP has a configuration file at the root of the pipeline named <code>config.ini</code>. In this file, we can configure certain execution parameters:</p>
+	<ul>
+		<li><code>HUD_PORT number</code>: TCP port used for CommandUP communication with FFmpeg for HUD data. Default is 4867.</li>
+		<li><code>VERBOSE "false|true"</code>: Defines the level of detail when writing to the log file.
+			<ul>
+				<li><code>false</code>: Disables detailed writing, recording simple information in the log.</li>
+				<li><code>true</code>: Enables Verbose, writing highly detailed information in the log.</li>
+			</ul>
+		</li>
+		<li><code>GPU_ID number</code>: If you have more than one video card, specify which one you want to use via the video card ID number. Usually 0 for the first vCard, 1 for the second.</li>
+	</ul>
+    <p>If needed, you can configure the <code>cup.ps1</code> script using parameters directly in the console: <code>-hud_port number</code>, <code>-verbose</code> AND <code>-gpu_id number</code>, or if you prefer, by editing the <code>config.ini</code> file:</p>
+    <pre><code>[CUP SETTINGS]
+HUD_PORT=4867
+VERBOSE=false
+GPU_ID=0
+</code></pre>
 
     <h3>2. <code>extract.ps1</code></h3>
     <p>Script to extract some frames from the processed video so you can evaluate frame-by-frame if the result is good. You can extract all frames of x seconds starting at a specific video timestamp. It is the ideal tool for you to visually evaluate the final quality, allowing a frame-by-frame check.</p>
@@ -303,7 +304,7 @@ VERBOSE=false</code></pre>
         <li><code>-file "file"</code>: The full path of the video file you want to process. It must be enclosed in quotes.</li>
         <li><code>-time "hh:mm:ss"</code>: The extraction start point in HH:MM:SS format. If left blank, it will automatically start at 3 seconds (<code>00:00:03</code>).</li>
         <li><code>-secs number</code>: How many seconds of video you want to transform into photos. If left blank, it will extract only 1 second (if the video is at 60fps, 60 frames will be extracted).</li>
-        <li><code>-output "destination_path"</code>: Folder where to save the photos (enclosed in double quotes). If left blank, the script will extract the frames into the <code>output</code> folder inside the FSRIFS root path.</li>
+        <li><code>-output "destination_path"</code>: Folder where to save the photos (enclosed in double quotes). If left blank, the script will extract the frames into the <code>output</code> folder inside the CommandUP root path.</li>
     </ul>
 
     <h2>Known Issues / Technical Limitations</h2>
@@ -320,14 +321,14 @@ VERBOSE=false</code></pre>
         <li><strong>Core Component (FFmpeg):</strong> Version N-125258-gdf94900c98-20260624. Applicable License: <em>GNU Lesser General Public License (LGPL v2.1 or later)</em> or <em>GNU General Public License (GPL v2.0 or later)</em>.</li>
         <li><strong>Vulkan and IFS Rendering Library (libplacebo):</strong> Built-in compilation natively inside the main FFmpeg binary listed above. Applicable License: <em>GNU Lesser General Public License (LGPL v2.1 or later)</em>.</li>
         <li><strong>Spatial Scaling Algorithm (FidelityFX FSR):</strong> Version v1.0.2. Developed and registered by Advanced Micro Devices, Inc. (AMD). Applicable License: <em>MIT License (Open-Source and widely permissive)</em> ported to GLSL by agyild.</li>
-        <li><strong>Pipeline Integration Scripts:</strong> Developed by Aless (MauiSmoke). Applicable License: <em>MIT License (Free to use Open-Source)</em>.</li>
+        <li><strong>CUP Pipeline Integration Scripts:</strong> Developed by Aless (MauiSmoke). Applicable License: <em>MIT License (Free to use Open-Source)</em>.</li>
     </ul>
 
     <h2>Social Channels:</h2>
     <ul>
         <li><strong>Official Channel (YouTube):</strong> Watch tutorials, news, performance showcases, and ask your questions directly in the channel community: <a href="https://www.youtube.com/playlist?list=PLae7RZ7VAOWk" target="_blank">YouTube Channel</a>.</li>
-        <li><strong>Official Channel (Reddit):</strong> Comment, share your experience, and ask questions directly in the community: <a href="https://www.reddit.com/r/FSRIFS/" target="_blank">Reddit Community</a>.</li>
-        <li><strong>Official Channel (Buy Me a Coffee):</strong> FSRIFS is free, but development is limited. Consider buying me a coffee: <a href="https://buymeacoffee.com/fsrifs" target="_blank">Access and Support</a>.</li>
+        <li><strong>Official Channel (Reddit):</strong> Comment, share your experience, and ask questions directly in the community: <a href="https://www.reddit.com/r/CommandUP/" target="_blank">Reddit Community</a>.</li>
+        <li><strong>Official Channel (Buy Me a Coffee):</strong> CommandUP is free, but development is limited. Consider buying me a coffee: <a href="https://buymeacoffee.com/commandup" target="_blank">Access and Support</a>.</li>
     </ul>
 </div>
 

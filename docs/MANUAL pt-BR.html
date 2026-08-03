@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MANUAL DE UTILIZAÇÃO PRÁTICA: FSRIFS</title>
+    <title>MANUAL DE UTILIZAÇÃO PRÁTICA: CommandUP</title>
     <style>
         :root {
             --bg-color: #f8f9fa;
@@ -150,14 +150,14 @@
 <body>
 
 <div class="container">
-    <h1>FSRIFS (FSR + IFS) Upscale + Interpolador de frames</h1>
+    <h1>CommandUP (cup) Upscale + Frame Interpolator</h1>
     <div class="subtitle">MANUAL DE UTILIZAÇÃO PRÁTICA</div>
 
     <h2>Requisitos e Dependências de Hardware</h2>
-    <p>Para que a pipeline de pós-processamento funcione corretamente no seu computador, o seu sistema precisa cumprir as seguintes dependências físicas e de software:</p>
+    <p>Para que a CUP Pipeline de pós-processamento funcione corretamente no seu computador, o seu sistema precisa cumprir as seguintes dependências físicas e de software:</p>
     <ul>
-        <li><strong>Compatibilidade com API Vulkan <span class="badge">Obrigatório</span>:</strong> A sua placa de vídeo precisa ter suporte nativo à tecnologia Vulkan. Funciona em placas de vídeo dedicadas (AMD RX, Nvidia GTX/RTX) e também em chips integrados (AMD Vega ou Intel HD Graphics mais recentes). Se a sua GPU não tiver suporte a Vulkan, o processo não iniciará.</li>
-        <li><strong>Processador (CPU):</strong> Qualquer processador básico de 4 ou 6 núcleos antigos (como a linha AMD FX ou Intel Core de gerações passadas) é perfeitamente capaz de rodar a pipeline. O uso médio de CPU fica na casa dos 45%, mantendo o Windows totalmente livre de travamentos ou superaquecimento durante a renderização.</li>
+		<li><strong>Desenvolvido especificamente para</strong>: Windows 10 e Windows 11 (64 bits). Baseia-se em scripts PowerShell nativos do Windows, pipelines de automação em lote (Batch) e vinculações de terminal específicas do Windows. Linux (incluindo Wine/Proton) e macOS NÃO são suportados.</li>        <li><strong>Compatibilidade com API Vulkan <span class="badge">Obrigatório</span>:</strong> A sua placa de vídeo precisa ter suporte nativo à tecnologia Vulkan. Funciona em placas de vídeo dedicadas (AMD RX, Nvidia GTX/RTX) e também em chips integrados (AMD Vega ou Intel HD Graphics mais recentes). Se a sua GPU não tiver suporte a Vulkan, o processo não iniciará.</li>
+        <li><strong>Processador (CPU):</strong> Qualquer processador básico de 4 ou 6 núcleos antigos (como a linha AMD FX ou Intel Core de gerações passadas) é perfeitamente capaz de rodar a CUP Pipeline. O uso médio de CPU fica na casa dos 45%, mantendo o Windows totalmente livre de travamentos ou superaquecimento durante a renderização.</li>
         <li><strong>Memória de Vídeo (VRAM):</strong> Placas de vídeo legadas com 2GB de VRAM dão conta do recado tranquilamente se o usuário operar com inteligência. Recomenda-se fechar navegadores de internet, Discord e jogos em segundo plano antes de iniciar o processo em resoluções altas (como 2K ou 4K) to evitar estouro de memória da placa.</li>
         <li><strong>Sistema Operacional:</strong> Windows 10 ou Windows 11 de 64-bits com o terminal PowerShell ativo e liberado para execução de scripts.</li>
     </ul>
@@ -165,25 +165,16 @@
     <div class="section-divider"></div>
 
     <h2>Instalação</h2>
-    <ol>
+    <ul>
         <li>Inicie baixando o zip com o conteúdo.</li>
-        <li>Descompacte onde desejar. Você verá toda a estrutura de pastas do <code>FSRIFS</code>.</li>
-        <li>O Processo todo se desenrola dentro de um prompt do powershell (conhecer comandos básicos de navegação nas pastas via comando é importante).</li>
-        <li>Vamos iniciar abrindo o powershell, não precisa ser em modo adm o script não vai precisar de privilégios para rodar.</li>
-    </ol>
-    <p>Se for a sua primeira vez rodando scripts no computador, digite o comando abaixo para permitir a execução de scripts:</p>
-    <pre><code>Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process</code></pre>
-    <p>Responda <strong>SIM</strong> para aplicar a política de execução.</p>
-
-    <div class="section-divider"></div>
-
-    <h2>Como Executar</h2>
+        <li>Descompacte onde desejar. Você verá toda a estrutura de pastas do <code>CommandUP</code>.</li>
+    </ul>
     <p>Ok! Agora estamos prontos para rodar os processos e você pode fazer isso de duas maneiras:</p>
 
     <h3>Método 1: Drag & Drop</h3>
-    <p>Essa é a forma mais fácil de executar a pipeline. Voltado para usuários sem conhecimento em prompt. Onde você pode processar um vídeo individualmente ou vários arquivos pré selecionados dentro de uma pasta.</p>
+    <p>Essa é a forma mais fácil de executar a CUP Pipeline. Voltado para usuários sem conhecimento em prompt. Onde você pode processar um vídeo individualmente ou vários arquivos pré selecionados dentro de uma pasta.</p>
     <ol>
-        <li>Usando o explorador de arquivos, acesse a sua pasta onde descompactou o <code>FSRIFS</code>, vc verá um arquivo chamado <code>DRAG__HERE.bat</code>.</li>
+        <li>Usando o explorador de arquivos, acesse a sua pasta onde descompactou o <code>CommandUP</code>, vc verá um arquivo chamado <code>DRAG_HERE.bat</code>.</li>
         <li>Agora abra outra janela de explorador de arquivos e vá até o local onde esta localizado o arquivo ou pasta que você deseja processar.</li>
         <li>Arraste o seu vídeo ou pasta e solte sobre o arquivo DRAG_HERE.</li>
     </ol>
@@ -199,12 +190,16 @@ SHUTDOWN=false
 	</code></pre>
 
     <h3>Método 2: PowerShell (Terminal)</h3>
-    <p>Esse é o método original para você processar seus vídeos, necessário conhecimento de prompt.</p>
-    <p>Precisamos acessar o local onde você descompactou o FSRIFS. Por exemplo:</p>
-    <pre><code>cd "D:\FSRIFS"</code></pre>
-    <p>Você estará assim na pasta da pipeline e poderá executar dois scripts:</p>
+    <p>Esse é o método original para você processar seus vídeos. O Processo todo se desenrola dentro de um prompt do powershell (conhecer comandos básicos de navegação nas pastas via comando é importante). </p>
+	<p>Vamos iniciar abrindo o powershell, não precisa ser em modo adm o script não vai precisar de privilégios para rodar. Se for a sua primeira vez rodando scripts no computador, digite o comando abaixo para permitir a execução de scripts:</p>
+    <pre><code>Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process</code></pre>
+    <p>Responda <strong>SIM</strong> para aplicar a política de execução.</p>
 
-    <h3>1. <code>fsrifs.ps1</code></h3>
+    <p>Precisamos acessar o local onde você descompactou o CommandUP. Por exemplo:</p>
+    <pre><code>cd "D:\CommandUP"</code></pre>
+    <p>Você estará assim na pasta da CUP Pipeline e poderá executar dois scripts:</p>
+
+    <h3>1. <code>cup.ps1</code></h3>
     <p>Nosso script principal, com ele podemos fazer upscaling e ou frame interpolation. O script atua de forma modular, você pode acessar esses módulos através de parâmetros na linha de comando, vamos conhecer eles:</p>
     <ul>
         <li><code>-file "caminho_nome_do_arquivo"</code>: O caminho completo do arquivo de vídeo que você deseja processar. Deve ser colocado entre aspas. Formatos suportados: mp4 e mkv.</li>
@@ -238,14 +233,14 @@ SHUTDOWN=false
                 <li><code>big</code>: Máxima fidelidade visual e alta taxa de bits, voltado para arquivamento ou upload em alta qualidade. Gera um arquivo final enorme.</li>
             </ul>
         </li>
-        <li><code>-sharpness número</code>: Qualidade aplicada pelo FSR indo de <code>0</code> (mínimo) até <code>10</code> (máximo).</li>
+        <li><code>-sharpness número</code>: Nitidez aplicada pelo FSR indo de <code>0</code> (mínimo) até <code>10</code> (máximo).</li>
         <li><code>-hdr "false|true"</code>: Ativa o processamento de high dynamic range (HDR) dentro do FSR. AVISO: Isso NÃO é qualidade de "Alta Definição" (HD)! Ativar essa opção em um vídeo comum (não HDR) arruinará as cores e distorcerá o brilho.
             <ul>
                 <li><code>false</code>: Utiliza equações padrão do espaço de cores. Ideal para conteúdo normal não HDR.</li>
                 <li><code>true</code>: Força o FSR a utilizar o espaço de cores PQ. DEVE SER ATIVADO APENAS se o vídeo de origem possuir gama PQ (HDR10).</li>
             </ul>
 		</li>
-        <li><code>-shutdown "false|true"</code>: O perfil de peso, compressão e tamanho do arquivo final. Se você omitir este parâmetro, o sistema assumirá automaticamente o perfil equilibrado <code>"med"</code>. As opções disponíveis são:
+        <li><code>-shutdown "false|true"</code>: Desligamento automático do computador após a conclusão do processamento:
             <ul>
                 <li><code>false</code>: Comportamento de execução normal. Mantém o computador em funcionamento.</li>
                 <li><code>true</code>: Exibe uma contagem regressiva de 30 segundos na tela. O usuário pode pressionar: [ENTER] para desligar imediatamente, ou [ESC] para cancelar e manter o PC ligado.</li>
@@ -259,16 +254,16 @@ SHUTDOWN=false
 
     <h3>Exemplos de Comandos:</h3>
     <p><strong>Fazer APENAS o Upscale (digamos que de 720p para 1080p, com nitidez mediana, então aplicamos uma escala de 1.5x e nitidez 5):</strong></p>
-    <pre><code>.\fsrifs.ps1 -file "C:\pasta\video.mp4" -scale 1.5 -sharpness 5</code></pre>
+    <pre><code>.\cup.ps1 -file "C:\pasta\video.mp4" -scale 1.5 -sharpness 5</code></pre>
 
     <p><strong>Fazer APENAS a Interpolação de Frames (digamos que seu vídeo original tem 30fps):</strong></p>
-    <pre><code>.\fsrifs.ps1 -file "C:\pasta\video.mp4" -fps 60 -interpolate linear</code></pre>
+    <pre><code>.\cup.ps1 -file "C:\pasta\video.mp4" -fps 60 -interpolate linear</code></pre>
 
     <p><strong>Pipeline Completa (Upscale 1080p + Nitidez + geração de frames 60 FPS):</strong></p>
-    <pre><code>.\fsrifs.ps1 -file "C:\pasta\video.mp4" -scale "1920x1080" -Sharpness 8 -fps 60 </code></pre>
+    <pre><code>.\cup.ps1 -file "C:\pasta\video.mp4" -scale "1920x1080" -Sharpness 8 -fps 60 </code></pre>
 
     <p><strong>Processar vídeos em uma pasta (Qualidade quantitativa + Upscale 1.5x + Nitidez):</strong></p>
-    <pre><code>.\fsrifs.ps1 -folder "C:\pasta lote\" -quality big -scale 1.5 -Sharpness 10 </code></pre>
+    <pre><code>.\cup.ps1 -folder "C:\pasta lote\" -quality big -scale 1.5 -Sharpness 10 </code></pre>
 
     <h4>Nomeclatura dos Arquivos de Saída</h4>
     <p>O script irá identificar a origem do seu arquivo e salva o resultado final exatamente na mesma pasta do vídeo original. O nome do novo arquivo é gerado de forma inteligente com sufixos baseados no que você escolheu fazer:</p>
@@ -278,22 +273,23 @@ SHUTDOWN=false
         <li>Se processou a pipeline completa: <code>video_FSR_1080x720_IFS_60fpsLINEAR.mp4</code>.</li>
     </ul>
 
-    <h3>Andamento do processo na HUD e em Log</h3>
-    <p>A pipeline usa o FFmpeg em segundo plano para tratar os videos. Todo o processamento é acompanhado passo a passo na hud do FSRIFS que recebe os dados de andamento do FFmpeg através de um socket TCP. Todos os dados de avaliação são armazenados na pasta log da pipeline, você pode identificar esses arquivos pelo nome.</p>
-    <p>Existe um arquivo config.ini na raíz da pipeline. nesse arquivo podemos configurar dois parametros:</p>
+    <h3>Configuração da CUP Pipeline</h3>
+	<p>CommandUP possui um arquivo de configuração na raíz da pipeline chamado <code>config.ini</code>. Nesse arquivo podemos configurar alguns parametros de execução:</p>
     <ul>
-        <li><code>HUD_PORT número</code>: Porta tcp usada para comunicação do FSRIFS com o FFmpeg para dados da HUD. Padrão 4867</li>
+        <li><code>HUD_PORT número</code>: Porta tcp usada para comunicação do CommandUP com o FFmpeg para dados da HUD. Padrão 4867</li>
         <li><code>VERBOSE "false|true"</code>: Define o nivel de detalhe na escrita do arquivo de log. 
             <ul>
                 <li><code>false</code>: Desativa detalhamento, escrevendo informações simples no log.</li>
                 <li><code>true</code>: Ativa Verbose, escrevendo informações detalhadas no log.</li>
             </ul>
 		</li>
+        <li><code>GPU_ID número</code>: Se você tiver mais de uma placa de vídeo, especifique qual quer usar pelo número ID da placa. Normalmente 0 para a primeira placa, 1 para a segunda.</li>
     </ul>
-    <p>Caso exista necessidade, você pode configurar o script <code>fsrifs.ps1</code> usando os parametros diretamente no console: <code>-hud_port número</code> e <code>-verbose</code>, ou se preferir editando o arquivo <code>config.ini</code>:</p>
-    <pre><code>[FSRIFS_SETTINGS]
+    <p>Caso exista necessidade, você pode configurar o script <code>cup.ps1</code> usando os parametros diretamente no console: <code>-hud_port número</code>, <code>-verbose</code> e <code>-gpu_id número</code>, ou se preferir editando o arquivo <code>config.ini</code>:</p>
+    <pre><code>[CUP_SETTINGS]
 HUD_PORT=4867
 VERBOSE=false
+GPU_ID=0
 	</code></pre>
 
     <h3>2. <code>extract.ps1</code></h3>
@@ -303,7 +299,7 @@ VERBOSE=false
         <li><code>-file "arquivo"</code>: O caminho completo do arquivo de vídeo que você deseja processar. Deve ser colocado entre aspas.</li>
         <li><code>-time "hh:mm:ss"</code>: O ponto de início da extração no formato HH:MM:SS. Se não for preenchido, começará automaticamente aos 3 segundos (<code>00:00:03</code>).</li>
         <li><code>-secs número</code>: Quantos segundos de vídeo você quer transformar em fotos. Se não for preenchido, extrairá apenas 1 segundo (se o vídeo estiver em 60fps, então serão extraídos 60 frames).</li>
-        <li><code>-output "pasta destino"</code>: Pasta onde salvar as fotos (entre aspas duplas). Se não for preenchido, o script irá extrair os frames dentro da pasta <code>output</code> na raiz da FSRIFS.</li>
+        <li><code>-output "pasta destino"</code>: Pasta onde salvar as fotos (entre aspas duplas). Se não for preenchido, o script irá extrair os frames dentro da pasta <code>output</code> na raiz da CommandUP.</li>
     </ul>
 
     <h2>Problemas Conhecidos / Limitações Técnicas</h2>
@@ -320,14 +316,14 @@ VERBOSE=false
         <li><strong>Componente Core (FFmpeg):</strong> Versão N-125258-gdf94900c98-20260624. Licença aplicável: <em>GNU Lesser General Public License (LGPL v2.1 ou posterior)</em> ou <em>GNU General Public License (GPL v2.0 ou posterior)</em>.</li>
         <li><strong>Biblioteca de Renderização Vulkan e IFS (libplacebo):</strong> Compilação embarcada nativamente no binário principal do FFmpeg listado acima. Licença aplicável: <em>GNU Lesser General Public License (LGPL v2.1 ou posterior)</em>.</li>
         <li><strong>Algoritmo de Escala Espacial (FidelityFX FSR):</strong> Versão v1.0.2. Desenvolvido e registrado por Advanced Micro Devices, Inc. (AMD). Licença aplicável: <em>Licença MIT (Open-Source e amplamente permissiva) portado para glsl por agyild</em>.</li>
-        <li><strong>Scripts de integração da pipeline:</strong> Desenvolvido por Aless (MaulSmoke). Licença aplicável: <em>Licença MIT (Open-Source e de uso livre)</em>.</li>
+        <li><strong>Scripts de integração da CUP Pipeline:</strong> Desenvolvido por Aless (MaulSmoke). Licença aplicável: <em>Licença MIT (Open-Source e de uso livre)</em>.</li>
     </ul>
 
     <h2>Canais Sociais:</h2>
     <ul>
         <li><strong>Canal Oficial (YouTube):</strong> Assista aos tutoriais, novidades, showcase de performance e tire suas dúvidas diretamente na comunidade do canal: <a href="https://www.youtube.com/playlist?list=PLae7RZ7VAOWk" target="_blank">Canal do YouTube</a>.</li>
-		<li><strong>Canal Oficial (reddit):</strong> Comente, compartilhe sua experiência, tire suas dúvidas diretamente na comunidade do canal: <a href="https://www.reddit.com/r/FSRIFS/" target="_blank">Comunidade reddit</a>.</li>
-		<li><strong>Canal Oficial (buymeacoffee):</strong> O FSRIFS é gratuito, mas o desenvolvimento é limitado. Considere me pagar um café: <a href="https://buymeacoffee.com/fsrifs" target="_blank">Acesse e apoie</a>.</li>
+		<li><strong>Canal Oficial (reddit):</strong> Comente, compartilhe sua experiência, tire suas dúvidas diretamente na comunidade do canal: <a href="https://www.reddit.com/r/CommandUP/" target="_blank">Comunidade reddit</a>.</li>
+		<li><strong>Canal Oficial (buymeacoffee):</strong> O CommandUP é gratuito, mas o desenvolvimento é limitado. Considere me pagar um café: <a href="https://buymeacoffee.com/commandup" target="_blank">Acesse e apoie</a>.</li>
     </ul>
 </div>
 

@@ -37,6 +37,7 @@ function Invoke-VideoPipeline {
     $sharpness     = $Config.sharpness
 	$hdr           = $Config.hdr
 	$hud_port      = $Config.hud_port
+	$gpu_id        = $Config.gpu_id
     $shaderFFmpeg  = $Pipeline.shaderFFmpeg
 	$gpuColorFix   = $pipeline.gpuColorFix
     $wOriginal     = $Metadata.wOriginal
@@ -141,15 +142,15 @@ function Invoke-VideoPipeline {
 		}
 
 		# Monta a string do FFmpeg
-		$argumentosString = "-nostats -progress `"tcp://127.0.0.1:$($hud_port)`" " +
-							'-init_hw_device vulkan=vk:0 -filter_hw_device vk ' +
+		$argumentosString = '-nostats -progress "tcp://127.0.0.1:' + $hud_port + '" ' +
+							'-init_hw_device vulkan=vk:' + $gpu_id + ' -filter_hw_device vk ' +
 							$vArgsTextoLimpo +
 							'-i "' + $file + '" ' +
 							'-vf "' + $vfString + '" ' +
 							'-fps_mode passthrough ' +
 							'-c:v ' + $Global:SelectedCodec + ' ' +
 							($Global:CodecArgs -join ' ') + ' ' +
-							'-tag:v avc1 -c:a copy -y "' + $outFile + '"'
+							'-tag:v avc1 -c:a copy -y -gpu ' + $gpu_id + ' "' + $outFile + '"'
 
 #debug    
 #Write-Host "`n[ argumentosString ] $argumentosString `n" -ForegroundColor Yellow
@@ -176,7 +177,7 @@ function Invoke-VideoPipeline {
 				$leitor = [System.IO.StreamReader]::new($stream)
 				
 				$outTimeMs = 0
-				$speed = 1.0
+				$velocidade = 1.0
 				
 				# Oculta o cursor do terminal
 				[Console]::CursorVisible = $false
@@ -187,9 +188,9 @@ function Invoke-VideoPipeline {
 				$layoutEstatico = @"
 
 ------------------------------------------------------------------------------------
- [File]: $($Metadata.NomeArquivo)
- [Resolution/fps]: $($Metadata.wOriginal)x$($Metadata.hOriginal)/$($metadata.fpsOriginal) -> $($Metadata.widthOut)x$($Metadata.heightOut)/$($Metadata.fpsOut)
- [Time]: $($timeDuracao)
+  [File     ]: $($Metadata.NomeArquivo)
+  [Format   ]: $($Metadata.wOriginal)x$($Metadata.hOriginal)/$($metadata.fpsOriginal) -> $($Metadata.widthOut)x$($Metadata.heightOut)/$($Metadata.fpsOut)
+  [Length   ]: $($timeDuracao)
 "@
 				Write-Host $layoutEstatico
 				
@@ -203,13 +204,17 @@ function Invoke-VideoPipeline {
 				while (-not $processo.HasExited -or $stream.DataAvailable) {
 					if ($stream.DataAvailable) {
 						$linha = $leitor.ReadLine()
+
 						if ($null -eq $linha) { break }
 						
 						if ($linha -match "out_time_ms=(\d+)") { 
 							$outTimeMs = [double]$Matches[1] 
 						}
 						elseif ($linha -match "speed=\s*([\d\.]+)x") { 
-							$speed = [double]$Matches[1] 
+							$velocidade = [double]$Matches[1] 
+						}
+						elseif ($linha -match "fps=\s*([\d\.]+)") { 
+							$velocidadeFps = [double]$Matches[1] 
 						}
 						elseif ($linha -match "progress=(.*)") {
 							
@@ -225,14 +230,17 @@ function Invoke-VideoPipeline {
 								$tsAtual = [TimeSpan]::FromSeconds($outTimeMs / 1000000)
 								$tempoAtualStr = "{0:d2}:{1:d2}:{2:d2}" -f [int][math]::Truncate($tsAtual.TotalHours), $tsAtual.Minutes, $tsAtual.Seconds
 							}
-							$etaStr = "00:00:00"
-							if ($speed -gt 0 -and $outTimeMs -lt $tempoTotalMs) {
-								$milisegundosRestantes = ($tempoTotalMs - $outTimeMs) / $speed
+							$restanteStr = "00:00:00"
+							if ($velocidade -gt 0 -and $outTimeMs -lt $tempoTotalMs) {
+								$milisegundosRestantes = ($tempoTotalMs - $outTimeMs) / $velocidade
 								if ($milisegundosRestantes -gt 0) {
 									$tsEta = [TimeSpan]::FromMilliseconds($milisegundosRestantes / 1000)
-									$etaStr = "{0:d2}:{1:d2}:{2:d2}" -f [int][math]::Truncate($tsEta.TotalHours), $tsEta.Minutes, $tsEta.Seconds
+									$restanteStr = "{0:d2}:{1:d2}:{2:d2}" -f [int][math]::Truncate($tsEta.TotalHours), $tsEta.Minutes, $tsEta.Seconds
 								}
 							}
+							$tsDecorrido = $cronometro.Elapsed
+							$decorridoStr = "{0:d2}:{1:d2}:{2:d2}" -f [int][math]::Truncate($tsDecorrido.TotalHours), $tsDecorrido.Minutes, $tsDecorrido.Seconds
+
 							
 							# Montagem da Barra Visual (25 blocos)
 							$larguraBarra = 25
@@ -242,9 +250,11 @@ function Invoke-VideoPipeline {
 							
 							# LAYOUT DINÂMICO (Apenas o que muda)
 							$layoutDinamico = @"
- [At  ]: $($tempoAtualStr)
- [Progress]: [$barraVisual] $porcentagem% 
- [Speed]: $($speed.ToString('0.00'))x | [ETA]: $etaStr  [ $($ponteiros[$ponteiroPos]) ] 
+  [Done     ]: $($tempoAtualStr)
+  [Progress ]: [$barraVisual] $porcentagem% 
+  [Speed    ]: $($velocidade.ToString('0.00'))x  $($ponteiros[$ponteiroPos])  $($velocidadeFps)fps     
+  [Elapsed  ]: $decorridoStr 
+  [Left     ]: $restanteStr   
 "@
 							# Incrementa a animação do ponteiro
 							$ponteiroPos = ($ponteiroPos + 1) % $ponteiros.Count
@@ -254,7 +264,8 @@ function Invoke-VideoPipeline {
 							Write-Host $layoutDinamico -NoNewline
 						}
 					}
-					Start-Sleep -Milliseconds 5
+					# Parece ser redundante essa espera, pois o if anterior ja controla o fluxo
+					#Start-Sleep -Milliseconds 5
 				}
 				
 				# ------------------------------------------------------------------
@@ -262,9 +273,11 @@ function Invoke-VideoPipeline {
 				# ------------------------------------------------------------------
 				$barraVisualFinal = "■" * 25
 				$layoutDinamicoFinal = @"
- [At  ]: $($timeDuracao)
- [Progress]: [$barraVisualFinal] 100%
- [Speed]: $($speed.ToString('0.00'))x | [ETA]: $etaStr
+  [Done     ]: $($timeDuracao)
+  [Progress ]: [$barraVisualFinal] 100%
+  [Speed    ]: $($velocidade.ToString('0.00'))x 
+  [Elapsed  ]: $decorridoStr 
+  [Left     ]: $restanteStr
 "@
 				$Host.UI.RawUI.CursorPosition = $posicaoOriginalCursor
 				Write-Host $layoutDinamicoFinal -NoNewline

@@ -75,16 +75,16 @@ function Out-GlobalSummary {
 	Write-Host "====================================================================================" -ForegroundColor Cyan
 	Write-Host "  vCard (GPU): $($Pipeline.gpuName) [Codec: $Global:SelectedCodec] " -ForegroundColor Cyan
 	Write-Host "------------------------------------------------------------------------------------" -ForegroundColor DarkGray
-	Write-Host "                    __          _  __               _   ___   ___                   " -ForegroundColor Red
-	Write-Host "                   / _|___ _ __(_)/ _|___    __   _/ | /__ \ / _ \                  " -ForegroundColor Red
-	Write-Host "                  | |_/ __| '__| | |_/ __|   \ \ / / |  __) | | | |                 " -ForegroundColor Red
-	Write-Host "                  |  _\__ \ |  | |  _\__ \    \ V /| |_/ __/| |_| |                 " -ForegroundColor Red
-	Write-Host "                  |_| |___/_|  |_|_| |___/     \_/ |_(_)___(_)___/                  " -ForegroundColor White
-	Write-Host "                                                                                    " -ForegroundColor White
-	Write-Host "            Author: Aless (MaulSmoke) | Community: YouTube (@toplayaless)           " -ForegroundColor Gray
-	Write-Host "                                                                                    " -ForegroundColor Gray
+	Write-Host "    _________                                           .___  ____ _____________    " -ForegroundColor Red
+	Write-Host "    \_   ___ \  ____   _____   _____ _____    ____    __| _/ |    |   \______   \   " -ForegroundColor Red
+	Write-Host "    /    \  \/ /  _ \ /     \ /     \\__  \  /    \  / __ |  |    |   /|     ___/   " -ForegroundColor Red
+	Write-Host "    \     \___(  <_> )  Y Y  \  Y Y  \/ __ \|   |  \/ /_/ |  |    |  / |    |       " -ForegroundColor Red
+ 	Write-Host "     \______  /\____/|__|_|  /__|_|  (____  /___|  /\____ |  |______/  |____|       " -ForegroundColor White
+	Write-Host "            \/             \/      \/     \/     \/      \/                         " -ForegroundColor White
+	Write-Host "                                                                                    "
+	Write-Host "        [ Author  : Aless(MaulSmoke) | Community: YT/toPlayAless ]     cup v1.0.0   " -ForegroundColor Gray
 	Write-Host "------------------------------------------------------------------------------------" -ForegroundColor DarkGray
-    Write-Host "  Quality: $($Config.quality.ToUpper())  Resolution: $($InfoBanner.widthOut)x$($InfoBanner.heightOut)  Sharpness: $($Config.sharpness)  FPS: $($InfoBanner.fpsOut)  Interp: $($Config.interpolate)" -ForegroundColor White
+	Write-Host "  Quality: $($Config.quality.ToUpper())  Resolution: $($InfoBanner.widthOut)x$($InfoBanner.heightOut)  Sharpness: $($Config.sharpness)  FPS: $($InfoBanner.fpsOut)  Interp: $($Config.interpolate)" -ForegroundColor White
 	Write-Host "====================================================================================" -ForegroundColor Cyan
 
     # Lógica de Desligamento Automático

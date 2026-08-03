@@ -8,10 +8,10 @@ function Initialize-GlobalPipeline {
 
     # Define os caminhos das ferramentas e estruturas do ambiente
     $pipeline = [PSCustomObject]@{
-		ffmpeg       = Join-Path $Global:FSRIFS_ROOT "ffmpeg\bin\ffmpeg.exe"
-		ffprobe      = Join-Path $Global:FSRIFS_ROOT "ffmpeg\bin\ffprobe.exe"
-		logpath      = Join-Path $Global:FSRIFS_ROOT "log"
-		shader       = Join-Path $Global:FSRIFS_ROOT "shaders\fsr.glsl"
+		ffmpeg       = Join-Path $Global:CUP_ROOT "ffmpeg\bin\ffmpeg.exe"
+		ffprobe      = Join-Path $Global:CUP_ROOT "ffmpeg\bin\ffprobe.exe"
+		logpath      = Join-Path $Global:CUP_ROOT "log"
+		shader       = Join-Path $Global:CUP_ROOT "shaders\fsr.glsl"
 		shaderFFmpeg = ""
 		gpuName      = ""
 		gpuColorFix  = $false
@@ -20,10 +20,19 @@ function Initialize-GlobalPipeline {
 		verboseArgs  = @()
 		interpolate  = $Config.interpolate
     }
+	
+	try {
+		# Captura a primeira vcard disponivel no sistema
+		#$pipeline.gpuName = (Get-CimInstance Win32_VideoController | Select-Object -First 1).Name
 
-	# Faz a consulta de hardware
-	$pipeline.gpuName = (Get-CimInstance Win32_VideoController | Select-Object -First 1).Name
-	$gpuVendor = $pipeline.gpuName.ToUpper()
+		# Captura a vcard de acordo com o parametro gpu_id
+		$pipeline.gpuName = (Get-CimInstance Win32_VideoController)[$Config.gpu_id].Name
+
+		$gpuVendor = $pipeline.gpuName.ToUpper()
+	} catch {
+		Write-Warning "gpu_id: $($Config.gpu_id) don't exists. Please update parameter to accept value."
+		exit
+    }
 
 	# Define o codec correto e os perfis de qualidade CRF universais
 	$crfProfiles = @{ "LOW" = 24; "MED" = 19; "BIG" = 14 }
@@ -49,7 +58,6 @@ function Initialize-GlobalPipeline {
 		$Global:SelectedCodec = "libx264"
 		$Global:CodecArgs = @("-crf", $pipeline.qp_i, "-preset", "ultrafast")
 	}
-
 
     # Define argumentos verbose
     if ($Config.verbose) { 

@@ -1,6 +1,6 @@
 @echo off
 chcp 65001 >nul
-title FSRIFS by Aless(MaulSmoke)
+title CUP by Aless(MaulSmoke)
 cd /d "%~dp0"
 
 :: Validação segura de entrada
@@ -18,9 +18,9 @@ set "DRAG_PATH=%~1"
 :: Detecta se o item arrastado é um diretório (pasta) ou um arquivo
 if exist "%~1\" (
     echo [INFO] Folder detected. Starting batch mode...
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\fsrifs.ps1" -folder "%DRAG_PATH%" -DRAG_CONFIG
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\cup.ps1" -folder "%DRAG_PATH%" -DRAG_CONFIG
 ) else (
     echo [INFO] Single video file detected. Starting single mode...
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\fsrifs.ps1" -file "%DRAG_PATH%" -DRAG_CONFIG
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\cup.ps1" -file "%DRAG_PATH%" -DRAG_CONFIG
 )
 pause
