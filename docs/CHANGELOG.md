@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ## ☕ CommandUP Era
 
-### CUP [v1.0.1] - 2026-08-03
+### CUP [v1.0.0] - 2026-08-03
 * **Project Renamed:** *FSRIFS* has been officially renamed to **CommandUP**, with the abbreviation **(cup)**. This change brings a fresh perspective and simplifies the pronunciation of the pipeline. May CommandUP become an incredible tool for everyone.
 * **New `-gpu_id` Parameter:** For multi-GPU configurations, you can now specify which graphics card to use via its hardware ID number. This parameter can be set dynamically in the console (`-gpu_id`) or globally by editing the `config.ini` file.
 * **HUD Layout Update:** Adjusted and refined the visual format in which real-time video processing statistics are displayed.
