@@ -35,11 +35,13 @@ function Invoke-VideoPipeline {
     $fps           = $Config.fps
     $quality       = $Config.quality
     $sharpness     = $Config.sharpness
+	$codec         = $Config.codec
 	$hdr           = $Config.hdr
 	$hud_port      = $Config.hud_port
 	$gpu_id        = $Config.gpu_id
     $shaderFFmpeg  = $Pipeline.shaderFFmpeg
 	$gpuColorFix   = $pipeline.gpuColorFix
+	$gpuVulkanArgs = $pipeline.gpuVulkanArgs
     $wOriginal     = $Metadata.wOriginal
     $hOriginal     = $Metadata.hOriginal
     $widthOut      = $Metadata.widthOut
@@ -140,17 +142,20 @@ function Invoke-VideoPipeline {
 			$vArgsTextoLimpo = ($verboseArgs -join ' ') -replace "-stats", ""
 			if ($vArgsTextoLimpo) { $vArgsTextoLimpo += " " }
 		}
+		
+		# Seta a tag correta: avc1 para AVC (H.264) ou hvc1 para HEVC (H.265)
+		$vTag = if ($codec -eq "avc") { "avc1" } else { "hvc1" }
 
 		# Monta a string do FFmpeg
 		$argumentosString = '-nostats -progress "tcp://127.0.0.1:' + $hud_port + '" ' +
-							'-init_hw_device vulkan=vk:' + $gpu_id + ' -filter_hw_device vk ' +
+							'-init_hw_device vulkan=vk:' + $gpu_id + $gpuVulkanArgs + ' -filter_hw_device vk ' +
 							$vArgsTextoLimpo +
 							'-i "' + $file + '" ' +
 							'-vf "' + $vfString + '" ' +
 							'-fps_mode passthrough ' +
 							'-c:v ' + $Global:SelectedCodec + ' ' +
 							($Global:CodecArgs -join ' ') + ' ' +
-							'-tag:v avc1 -c:a copy -y -gpu ' + $gpu_id + ' "' + $outFile + '"'
+							'-tag:v ' + $vTag + ' -c:a copy -y -gpu ' + $gpu_id + ' "' + $outFile + '"'
 
 #debug    
 #Write-Host "`n[ argumentosString ] $argumentosString `n" -ForegroundColor Yellow

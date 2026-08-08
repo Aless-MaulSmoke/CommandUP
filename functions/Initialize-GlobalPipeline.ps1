@@ -1,4 +1,4 @@
-﻿# ==========================================================================
+﻿ # ==========================================================================
 # 2. FUNÇÃO DE INICIALIZAÇÃO DO AMBIENTE E SHADER (GLOBAL)
 # ==========================================================================
 function Initialize-GlobalPipeline {
@@ -8,57 +8,76 @@ function Initialize-GlobalPipeline {
 
     # Define os caminhos das ferramentas e estruturas do ambiente
     $pipeline = [PSCustomObject]@{
-		ffmpeg       = Join-Path $Global:CUP_ROOT "ffmpeg\bin\ffmpeg.exe"
-		ffprobe      = Join-Path $Global:CUP_ROOT "ffmpeg\bin\ffprobe.exe"
-		logpath      = Join-Path $Global:CUP_ROOT "log"
-		shader       = Join-Path $Global:CUP_ROOT "shaders\fsr.glsl"
-		shaderFFmpeg = ""
-		gpuName      = ""
-		gpuColorFix  = $false
-		qp_i         = 0
-		qp_p         = 0
-		verboseArgs  = @()
-		interpolate  = $Config.interpolate
+		ffmpeg        = Join-Path $Global:CUP_ROOT "ffmpeg\bin\ffmpeg.exe"
+		ffprobe       = Join-Path $Global:CUP_ROOT "ffmpeg\bin\ffprobe.exe"
+		logpath       = Join-Path $Global:CUP_ROOT "log"
+		shader        = Join-Path $Global:CUP_ROOT "shaders\fsr.glsl"
+		shaderFFmpeg  = ""
+		gpuName       = ""
+		gpuVendor     = ""
+		gpuColorFix   = $false
+		gpuVulkanArgs = ""
+		qp_i          = 0
+		qp_p          = 0
+		verboseArgs   = @()
+		interpolate   = $Config.interpolate
     }
 	
-	try {
-		# Captura a primeira vcard disponivel no sistema
-		#$pipeline.gpuName = (Get-CimInstance Win32_VideoController | Select-Object -First 1).Name
-
-		# Captura a vcard de acordo com o parametro gpu_id
-		$pipeline.gpuName = (Get-CimInstance Win32_VideoController)[$Config.gpu_id].Name
-
-		$gpuVendor = $pipeline.gpuName.ToUpper()
-	} catch {
-		Write-Warning "gpu_id: $($Config.gpu_id) don't exists. Please update parameter to accept value."
-		exit
-    }
-
 	# Define o codec correto e os perfis de qualidade CRF universais
 	$crfProfiles = @{ "LOW" = 24; "MED" = 19; "BIG" = 14 }
 	$qualidadeAlvo = $Config.quality.ToUpper()
 	$pipeline.qp_i = $crfProfiles[$qualidadeAlvo] # Reutilizando a variável qp_i para guardar o QP/CRF base
 
-	if ($gpuVendor -match "AMD" -or $gpuVendor -match "RADEON") {
-		$Global:SelectedCodec = "h264_amf"
-		$Global:CodecArgs = @("-rc", "cqp", "-qp_i", $pipeline.qp_i, "-qp_p", ($pipeline.qp_i + 2))
+	# Dicionário central de mapeamento de Codecs e Argumentos por Fabricante
+	$vendorCodecs = @{
+		"AMD"    = @{ "AVC" = "h264_amf";   "HEVC" = "hevc_amf" }
+		"NVIDIA" = @{ "AVC" = "h264_nvenc"; "HEVC" = "hevc_nvenc" }
+		"INTEL"  = @{ "AVC" = "h264_qsv";   "HEVC" = "hevc_qsv" }
+		"CPU"    = @{ "AVC" = "libx264";    "HEVC" = "libx265" }
+	}
+	
+	$vendorArgs = @{
+		"AMD"    = @("-rc", "cqp", "-qp_i", $pipeline.qp_i, "-qp_p", ($pipeline.qp_i + 2))
+		"NVIDIA" = @("-rc", "constqp", "-qp", $pipeline.qp_i)
+		"INTEL"  = @("-global_quality", $pipeline.qp_i)
+		"CPU"    = @("-crf", $pipeline.qp_i, "-preset", "ultrafast")
+	}
 
-		if ($gpuVendor -match "Vega") { $pipeline.gpuColorFix = $true }
+	try {
+		# Seleciona a gpu, simulada ou real
+		if ($Config.simulate_gpu -ne "NONE" -and $Config.simulate_gpu -ne "") {
+			$pipeline.gpuName = "Simulated $($Config.simulate_gpu) Card"
+			$pipeline.gpuVendor = $Config.simulate_gpu
+		} else {
+			# Captura a vcard de acordo com o parametro gpu_id
+			$pipeline.gpuName = (Get-CimInstance Win32_VideoController)[$Config.gpu_id].Name
+			$pipeline.gpuVendor = $pipeline.gpuName.ToUpper()
+		}
+		
+	} catch {
+		Write-Warning "gpu_id: $($Config.gpu_id) don't exists. Please update parameter to accept value."
+		exit
+    }
+
+	if ($pipeline.gpuVendor -match "AMD" -or $pipeline.gpuVendor -match "RADEON") {
+		if ($pipeline.gpuVendor -match "Vega") { $pipeline.gpuColorFix = $true }
+		$pipeline.gpuVendor = "AMD"
 	} 
-	elseif ($gpuVendor -match "NVIDIA" -or $gpuVendor -match "GEFORCE") {
-		$Global:SelectedCodec = "h264_nvenc"
-		$Global:CodecArgs = @("-rc", "constqp", "-qp", $pipeline.qp_i)
+	elseif ($pipeline.gpuVendor -match "NVIDIA" -or $pipeline.gpuVendor -match "GEFORCE") {
+		$pipeline.gpuVendor = "NVIDIA"
+		$pipeline.gpuVulkanArgs = ",disable_multiplane=1"
 	} 
-	elseif ($gpuVendor -match "INTEL") {
-		$Global:SelectedCodec = "h264_qsv"
-		$Global:CodecArgs = @("-global_quality", $pipeline.qp_i)
+	elseif ($pipeline.gpuVendor -match "INTEL") {
+		$pipeline.gpuVendor = "INTEL"
 	} 
 	else {
 		# Em ultimo caso H.264 rodando diretamente na CPU
-		$Global:SelectedCodec = "libx264"
-		$Global:CodecArgs = @("-crf", $pipeline.qp_i, "-preset", "ultrafast")
+		$pipeline.gpuVendor = "CPU"
 	}
-
+	
+	$Global:SelectedCodec = $vendorCodecs[$pipeline.gpuVendor][$Config.codec]
+	$Global:CodecArgs     = $vendorArgs[$pipeline.gpuVendor]
+	
     # Define argumentos verbose
     if ($Config.verbose) { 
 		$pipeline.verboseArgs = @("-v", "verbose") 

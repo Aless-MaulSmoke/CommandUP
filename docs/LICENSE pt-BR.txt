@@ -2,7 +2,7 @@
                     CRÉDITOS E ATRIBUIÇÕES DE LICENÇA
 ================================================================================
 
-CommandUP Pipeline v1.0.0 by Aless (MaulSmoke)
+CommandUP Pipeline v1.0.1 by Aless (MaulSmoke)
 
 Este pacote standalone distribui uma pipeline de pós-processamento modular 
 composta por ferramentas de código aberto integradas a uma lógica autoral. 
@@ -44,7 +44,6 @@ Abaixo estão detalhados os direitos autorais e as licenças de cada componente:
 --------------------------------------------------------------------------------
 4. SCRIPTS DE INTEGRAÇÃO DA CUP PIPELINE:
 --------------------------------------------------------------------------------
-* Versão Utilizada: v1.0.0 (Arquitetura Modular)
 * Desenvolvido por: Aless (MaulSmoke)
 * Licença Aplicável: Licença MIT (Open-Source, livre e permissiva).
 * Detalhes: Lógica autoral de automação responsável por orquestrar toda a pipeline, 

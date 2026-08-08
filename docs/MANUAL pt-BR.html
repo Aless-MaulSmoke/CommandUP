@@ -184,7 +184,8 @@ QUALITY=med
 FPS=60
 INTERPOLATE=oversample
 SCALE=1920x1080
-SHARPNESS=5
+SHARPNESS=8
+CODEC=avc
 HDR=false
 SHUTDOWN=false
 	</code></pre>
@@ -234,7 +235,13 @@ SHUTDOWN=false
             </ul>
         </li>
         <li><code>-sharpness número</code>: Nitidez aplicada pelo FSR indo de <code>0</code> (mínimo) até <code>10</code> (máximo).</li>
-        <li><code>-hdr "false|true"</code>: Ativa o processamento de high dynamic range (HDR) dentro do FSR. AVISO: Isso NÃO é qualidade de "Alta Definição" (HD)! Ativar essa opção em um vídeo comum (não HDR) arruinará as cores e distorcerá o brilho.
+        <li><code>-codec "avc|hevc"</code>: Seleciona o padrão de codificação de vídeo para o arquivo de saída:
+            <ul>
+                <li><code>avc</code>: Advanced Video Coding (H.264). Recomendado para máxima compatibilidade e placas de vídeo mais antigas ou legadas.</li>
+                <li><code>hevc</code>: High Efficiency Video Coding (H.265). Oferece melhor compressão e arquivos menores. Necessário para o modo HDR.</li>
+            </ul>
+        </li>
+        <li><code>-hdr "false|true"</code>: Ativa o processamento de high dynamic range (HDR) dentro do FSR. AVISO: Isso NÃO é qualidade de "Alta Definição" (HD)! Ativar essa opção em um vídeo comum (não HDR) arruinará as cores e distorcerá o brilho. Exige codec hevc.
             <ul>
                 <li><code>false</code>: Utiliza equações padrão do espaço de cores. Ideal para conteúdo normal não HDR.</li>
                 <li><code>true</code>: Força o FSR a utilizar o espaço de cores PQ. DEVE SER ATIVADO APENAS se o vídeo de origem possuir gama PQ (HDR10).</li>

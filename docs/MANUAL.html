@@ -186,7 +186,8 @@ QUALITY=med
 FPS=60
 INTERPOLATE=oversample
 SCALE=1920x1080
-SHARPNESS=5
+SHARPNESS=8
+CODEC=avc
 HDR=false
 SHUTDOWN=false</code></pre>
 
@@ -239,7 +240,13 @@ SHUTDOWN=false</code></pre>
             </ul>
         </li>
         <li><code>-sharpness number</code>: Sharpness applied by FSR ranging from <code>0</code> (minimum) to <code>10</code> (maximum).</li>
-        <li><code>-hdr "false|true"</code>: Enables High Dynamic Range (HDR) processing inside FSR. WARNING: This is NOT "High Definition" (HD) quality! Enabling this option on a regular (non-HDR) video will ruin colors and distort brightness.
+        <li><code>-codec "avc|hevc"</code>: Selects the video encoding standard for the output file:
+            <ul>
+                <li><code>avc</code>: Advanced Video Coding (H.264). Recommended for maximum compatibility and older/legacy graphics cards.</li>
+                <li><code>hevc</code>: High Efficiency Video Coding (H.265). Provides better compression and smaller file sizes. Required for HDR mode.</li>
+            </ul>
+        </li>
+        <li><code>-hdr "false|true"</code>: Enables High Dynamic Range (HDR) processing inside FSR. WARNING: This is NOT "High Definition" (HD) quality! Enabling this option on a regular (non-HDR) video will ruin colors and distort brightness. Requires hevc codec.
             <ul>
                 <li><code>false</code>: Uses standard color space equations. Ideal for normal non-HDR content.</li>
                 <li><code>true</code>: Forces FSR to use the PQ color space. MUST BE ENABLED ONLY if the source video has a PQ gamma (HDR10).</li>

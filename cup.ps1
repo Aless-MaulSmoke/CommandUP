@@ -1,11 +1,11 @@
 ﻿# ==========================================================================
 # ------------------------------
 #
-#   Command UP (cup) Pipeline (v1.0.0)
+#   Command UP (cup) Pipeline (v1.0.1)
 #   An automated pipeline for high-performance video upscaling via CLI.
 #
 #   cup.ps1 (Powershell script)
-#   2026/08/03
+#   2026/08/07
 #   by Aless (MaulSmoke)
 #
 #   A modular script designed to orchestrate lightweight, hardware-accelerated 
@@ -32,8 +32,11 @@
 #  -sharpness number
 #   The edge crispness applied by FSR, ranging from 0 to 10 (Default is 5).
 #
+#  -codec
+#   Selects the video encoding standard for the output file: "avc", "hevc".
+#
 #  -hdr
-#   Switch flag to force the FSR pass into the PQ color space pipeline (HDR10 source only).
+#   Switch flag to force the FSR pass into the PQ color space pipeline (HDR10 source only), requires hevc codec.
 #
 #  -shutdown
 #   Switch flag to trigger a safe 30-second system power-off countdown after execution.
@@ -60,12 +63,14 @@ param(
 	[string]$interpolate = "none",
     [string]$quality = "MED",
 	[System.Nullable[int]]$sharpness,
+	[string]$codec = "avc",
 	[switch]$hdr,
 	[switch]$shutdown,
 	[switch]$DRAG_CONFIG,
     [int]$hud_port,
 	[switch]$verbose,
-	[int]$gpu_id
+	[int]$gpu_id,
+	[string]$simulate_gpu = "none"
 )
 
 # =====================================================================

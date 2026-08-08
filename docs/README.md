@@ -1,4 +1,4 @@
-# CommandUP (cup) Pipeline v1.0.0 — Upscale + Frame Interpolator 🎬
+# CommandUP (cup) Pipeline v1.0.1 — Upscale + Frame Interpolator 🎬
 
 > **Lightweight, autonomous video post-processing pipeline built exclusively for Windows.** Bring the "Lossless Scaling" workflow to your offline local video files on low-end and legacy hardware.
 
@@ -62,7 +62,8 @@ QUALITY=med
 FPS=60
 INTERPOLATE=oversample
 SCALE=1920x1080
-SHARPNESS=5
+SHARPNESS=8
+CODEC=avc
 HDR=false
 SHUTDOWN=false
 ```
@@ -89,7 +90,10 @@ This is the core modular script used for upscaling and frame interpolation. Cust
   * `med`: Sweet spot. Preserves edge sharpness without bloating storage.
   * `big`: Maximum visual fidelity and high bitrate, meant for archival.
 * `-sharpness [0-10]`: FSR sharpness filtering strength, ranging from `0` to `10`.
-* `-hdr "false|true"`: Enables High Dynamic Range processing. *Warning: This is NOT "High Definition" (HD). Enabling this on standard non-HDR videos will distort colors and brightness.*
+* `-codec "avc|hevc"`: Selects the video encoding standard for the output file.
+  * `avc`: Advanced Video Coding (H.264). Recommended for maximum compatibility and older/legacy graphics cards.
+  * `hevc`: High Efficiency Video Coding (H.265). Provides better compression and smaller file sizes. Required for HDR mode.
+* `-hdr "false|true"`: Enables High Dynamic Range processing. *Warning: This is NOT "High Definition" (HD). Enabling this on standard non-HDR videos will distort colors and brightness. Requires hevc codec.*
   * `false`: Standard color space.
   * `true`: Forces FSR to use PQ color space (only use if source video is HDR10/PQ).
 * `-shutdown "false|true"`: Computer shutdown behavior. Defaults to `false`.

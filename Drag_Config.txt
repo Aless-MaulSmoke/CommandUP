@@ -4,6 +4,7 @@ FPS=60
 INTERPOLATE=oversample
 SCALE=1920x1080
 SHARPNESS=8
+CODEC=avc
 HDR=false
 SHUTDOWN=false
 
@@ -78,13 +79,22 @@ SHUTDOWN=false
 #  *Bypass active: Automatically disabled if no upscale happens.
 #
 #
+#  CODEC:
+#  --------------------------------------------------------------------
+#  Selects the video encoding standard for the output file.
+#  avc  - Advanced Video Coding (H.264). Recommended for maximum 
+#         compatibility and older/legacy graphics cards.
+#  hevc - High Efficiency Video Coding (H.265). Provides better 
+#         compression and smaller file sizes. Required for HDR mode.
+#
+#
 #  HDR:
 #  --------------------------------------------------------------------
 #  Enables high dynamic range processing for the AMD FSR shader pass.
 #
 #  WARNING: This is NOT "High Definition" (HD) quality!
 #  Turning this ON on a normal non-HDR video will RUIN
-#  colors and distort brightness.
+#  colors and distort brightness. Requires hevc codec.
 #
 #  false - Standard dynamic range processing. Uses standard BT.709 
 #          color space equations. Best for normal non-HDR content.

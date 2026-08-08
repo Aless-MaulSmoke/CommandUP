@@ -7,19 +7,21 @@ function Get-ScriptConfig {
     )
 	
     $config = [PSCustomObject]@{
-		file        = $null
-		folder      = $null
-		quality     = $null
-		fps         = $null
-		interpolate = $null
-		scale       = $null
-		sharpness   = $null
-		hdr         = $null
-		shutdown    = $null
-		drag_config = $false
-		hud_port    = $null
-		verbose     = $null
-		gpu_id      = $null
+		file         = $null
+		folder       = $null
+		quality      = $null
+		fps          = $null
+		interpolate  = $null
+		scale        = $null
+		sharpness    = $null
+		codec        = $null
+		hdr          = $null
+		shutdown     = $null
+		drag_config  = $false
+		hud_port     = $null
+		verbose      = $null
+		gpu_id       = $null
+		simulate_gpu = $null
     }
 
 	# Descobre a pasta raiz subindo um nível a partir da pasta 'functions'
@@ -29,7 +31,7 @@ function Get-ScriptConfig {
 	# Carrega parametros do config.ini
 	if (Test-Path $caminhoConfigIni) {
 		# Busca apenas as chaves necessárias no arquivo de texto
-		$chavesNecessarias = @("HUD_PORT", "VERBOSE", "gpu_id")
+		$chavesNecessarias = @("HUD_PORT", "VERBOSE", "GPU_ID")
 		$conteudoTxt = Get-Content $caminhoConfigIni
 
 		foreach ($chave in $chavesNecessarias) {
@@ -40,7 +42,7 @@ function Get-ScriptConfig {
 			}
 		}
 	} else {
-		# CASO O ARQUIVO NÃO SEJA ENCONTRADO: Printa um aviso claro na tela antes de fechar
+		# Printa um aviso na tela caso o config não seja encontrado
 		Write-Host "`n[CRITICAL ERROR] The config.ini file was not found in the root folder" -ForegroundColor Red
 		Write-Host "Path searched:$($caminhoConfigIni)" -ForegroundColor Yellow
 		exit
@@ -63,7 +65,7 @@ function Get-ScriptConfig {
 			$config.drag_config = $true
 
 			# Busca apenas as chaves necessárias no arquivo de texto
-			$chavesNecessarias = @("QUALITY", "FPS", "INTERPOLATE", "SCALE", "SHARPNESS", "HDR", "SHUTDOWN")
+			$chavesNecessarias = @("QUALITY", "FPS", "INTERPOLATE", "SCALE", "SHARPNESS", "CODEC", "HDR", "SHUTDOWN")
 			$conteudoTxt = Get-Content $caminhoDragConfig
 
 			foreach ($chave in $chavesNecessarias) {
@@ -74,7 +76,7 @@ function Get-ScriptConfig {
 				}
 			}
 		} else {
-			# CASO O ARQUIVO NÃO SEJA ENCONTRADO: Printa um aviso claro na tela antes de fechar
+			# Printa um aviso na tela caso o config não seja encontrado
 			Write-Host "`n[CRITICAL ERROR] The Drag_Config.txt file was not found in the root folder" -ForegroundColor Red
 			Write-Host "Path searched:$caminhoDragConfig" -ForegroundColor Yellow
 			exit
@@ -89,9 +91,9 @@ function Get-ScriptConfig {
     $catalogoErros = @{
 		1 = "Ambiguity Error: Use ONLY '-file' OR '-folder', not both at the same time."
 		2 = "No input specified. Use '-file' for a single video or '-folder' for batch processing."
-		3 = "The 'quality' parameter only accepts one of these valid options: LOW | MED | BIG"
+		3 = "The 'quality' parameter only accepts one of these valid options: LOW | MED | BIG "
 		4 = "The 'fps' parameter must be a valid number greater than 0."
-		5 = "The 'interpolate' parameter only accepts one of these valid options: none | oversample | mitchell_clamp | linear"
+		5 = "The 'interpolate' parameter only accepts one of these valid options: none | oversample | mitchell_clamp | linear "
 		6 = "The 'scale' parameter should be a resolution, e.g., 1920x1080, or a scaling factor, e.g., 1.5"
 		7 = "The 'sharpness' parameter only accepts numbers between 0 and 10"
 		8 = "The 'hdr' parameter only accepts true or false."
@@ -99,6 +101,9 @@ function Get-ScriptConfig {
 		10 = "The 'hud_port' the parameter must be a valid integer number."
 		11 = "The 'verbose' parameter only accepts true or false."
 		12 = "The 'gpu_id' parameter must be a valid number."
+		13 = "The 'simulate_gpu' parameter only accepts one of these valid options: none | nvidia | amd | intel | cpu "
+		14 = "The 'codec' parameter only accepts one of these valid options: avc | hevc "
+		15 = "The 'hdr' parameter requires the codec to be hevc."
     }
     $errosEncontrados = @()
 
@@ -177,6 +182,15 @@ function Get-ScriptConfig {
 		$config.sharpness = 0 
 	}
 
+    # valida: CODEC
+    if ($null -ne $config.codec) {
+        $config.codec = [string]$config.codec.ToString().ToUpper()
+        $codecsValidas = @("AVC", "HEVC")
+        if ($config.codec -notin $codecsValidas) { $errosEncontrados += 14 }
+    } else {
+        $config.codec = "AVC"
+    }
+
     # valida: HDR
     $valorFinalHdr = $false
     $existeHdr = $null -ne $config.hdr -and $config.hdr -ne ""
@@ -186,6 +200,11 @@ function Get-ScriptConfig {
             $errosEncontrados += 8
         } else {
             $valorFinalHdr = ($strTesteHdr -eq "true")
+            
+            # Se o HDR for ativado, o único codec aceito no momento é o HEVC
+            if ($valorFinalHdr -and $config.codec -ne "HEVC") {
+                $errosEncontrados += 15
+            }
         }
     }
     $config.hdr = $valorFinalHdr
@@ -234,6 +253,16 @@ function Get-ScriptConfig {
         $errosEncontrados += 12
     }
 
+    # valida: SIMULATE_GPU
+	if ($null -ne $config.simulate_gpu -and $config.simulate_gpu -ne "") {
+		$config.simulate_gpu = [string]$config.simulate_gpu.ToString().ToUpper().Trim()
+		$gpusValidas = @("NONE", "NVIDIA", "AMD", "INTEL", "CPU")
+		if ($config.simulate_gpu -notin $gpusValidas) { $errosEncontrados += 13 }
+	} else {
+		# Se veio nulo ou vazio (porque não foi digitado na CLI), assume o padrão maiúsculo para o seu if de hardware funcionar
+		$config.simulate_gpu = "NONE"
+	}
+	
     # LOOP DE VERIFICAÇÃO DE ERROS
     if ($errosEncontrados.Count -gt 0) {
         foreach ($id in $errosEncontrados) {
