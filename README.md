@@ -91,9 +91,9 @@ This is the core modular script used for upscaling and frame interpolation. Cust
   * `big`: Maximum visual fidelity and high bitrate, meant for archival.
 * `-sharpness [0-10]`: FSR sharpness filtering strength, ranging from `0` to `10`.
 * `-codec "avc|hevc"`: Selects the video encoding standard for the output file.
-  * `avc`: Advanced Video Coding (H.264) 8bits. Recommended for maximum compatibility and older/legacy graphics cards.
-  * `hevc`: High Efficiency Video Coding (H.265) 8 and 10bits. Provides better compression and smaller file sizes. Required for HDR mode.
-* `-hdr "false|true"`: Enables High Dynamic Range processing. *Warning: This is NOT "High Definition" (HD). Enabling this on standard non-HDR videos will distort colors and brightness. Requires hevc 10bits codec.*
+  * `avc`: Advanced Video Coding (H.264) 8-Bit. Recommended for maximum compatibility and older/legacy graphics cards.
+  * `hevc`: High Efficiency Video Coding (H.265) 8 and 10-Bit. Provides better compression and smaller file sizes. Required for HDR mode.
+* `-hdr "false|true"`: Enables High Dynamic Range processing. *Warning: This is NOT "High Definition" (HD). Enabling this on standard non-HDR videos will distort colors and brightness. Requires hevc 10-Bit codec.*
   * `false`: Standard color space.
   * `true`: Forces FSR to use PQ color space (only use if source video is HDR10/PQ).
 * `-shutdown "false|true"`: Computer shutdown behavior. Defaults to `false`.
