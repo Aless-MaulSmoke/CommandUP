@@ -158,7 +158,7 @@
 
     <ul>
         <li><strong>Engineered strictly for</strong>: Windows 10 and Windows 11 (64-bit). It relies on Windows native PowerShell scripting, Batch automation pipelines, and Windows-specific terminal bindings. Linux (including Wine/Proton) and macOS are NOT supported.</li>
-        <li><strong>Vulkan API Compatibility <span class="badge">Required</span>:</strong> Your graphics card must have native support for Vulkan technology. It works on dedicated graphics cards (AMD RX, Nvidia GTX/RTX) as well as newer integrated chips (AMD Vega or Intel HD Graphics). If your GPU does not support Vulkan, the process will not start.</li>
+        <li><strong>Vulkan API Compatibility <span class="badge">Required</span>:</strong> Your graphics card must have native support for Vulkan technology 1.3 or higher. It works on dedicated graphics cards (AMD RX, Nvidia GTX/RTX) as well as newer integrated chips (AMD Vega or Intel HD Graphics). If your GPU does not support Vulkan, the process will not start.</li>
         <li><strong>Processor (CPU):</strong> Any basic 4 or 6-core processor (such as the AMD FX line or older generations Intel Core) is perfectly capable of running the CUP Pipeline. Average CPU usage is around 45%, leaving Windows completely free from freezes or overheating during rendering.</li>
         <li><strong>Video Memory (VRAM):</strong> Legacy graphics cards with 2GB of VRAM will handle the task smoothly if the user operates wisely. It is recommended to close web browsers, Discord, and background games before starting the process at high resolutions (such as 2K or 4K) to avoid running out of card memory.</li>
         <li><strong>Operating System:</strong> Windows 10 or Windows 11 64-bit with the execution of scripts enabled in the system PowerShell.</li>
@@ -242,11 +242,11 @@ SHUTDOWN=false</code></pre>
         <li><code>-sharpness number</code>: Sharpness applied by FSR ranging from <code>0</code> (minimum) to <code>10</code> (maximum).</li>
         <li><code>-codec "avc|hevc"</code>: Selects the video encoding standard for the output file:
             <ul>
-                <li><code>avc</code>: Advanced Video Coding (H.264). Recommended for maximum compatibility and older/legacy graphics cards.</li>
-                <li><code>hevc</code>: High Efficiency Video Coding (H.265). Provides better compression and smaller file sizes. Required for HDR mode.</li>
+                <li><code>avc</code>: Advanced Video Coding (H.264) 8-Bit. Recommended for maximum compatibility and older/legacy graphics cards.</li>
+                <li><code>hevc</code>: High Efficiency Video Coding (H.265) 8 and 10-Bit. Provides better compression and smaller file sizes. Required for HDR mode.</li>
             </ul>
         </li>
-        <li><code>-hdr "false|true"</code>: Enables High Dynamic Range (HDR) processing inside FSR. WARNING: This is NOT "High Definition" (HD) quality! Enabling this option on a regular (non-HDR) video will ruin colors and distort brightness. Requires hevc codec.
+        <li><code>-hdr "false|true"</code>: Enables High Dynamic Range (HDR) processing inside FSR. WARNING: This is NOT "High Definition" (HD) quality! Enabling this option on a regular (non-HDR) video will ruin colors and distort brightness. Requires hevc (10-Bit) codec.
             <ul>
                 <li><code>false</code>: Uses standard color space equations. Ideal for normal non-HDR content.</li>
                 <li><code>true</code>: Forces FSR to use the PQ color space. MUST BE ENABLED ONLY if the source video has a PQ gamma (HDR10).</li>

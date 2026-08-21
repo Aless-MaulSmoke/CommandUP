@@ -82,10 +82,11 @@ SHUTDOWN=false
 #  CODEC:
 #  --------------------------------------------------------------------
 #  Selects the video encoding standard for the output file.
-#  avc  - Advanced Video Coding (H.264). Recommended for maximum 
+#  avc  - Advanced Video Coding (H.264) 8bits. Recommended for maximum 
 #         compatibility and older/legacy graphics cards.
-#  hevc - High Efficiency Video Coding (H.265). Provides better 
-#         compression and smaller file sizes. Required for HDR mode.
+#  hevc - High Efficiency Video Coding (H.265) 8 and 10bits. Provides 
+#         better compression and smaller file sizes. Required for 
+#         HDR mode.
 #
 #
 #  HDR:
@@ -94,7 +95,7 @@ SHUTDOWN=false
 #
 #  WARNING: This is NOT "High Definition" (HD) quality!
 #  Turning this ON on a normal non-HDR video will RUIN
-#  colors and distort brightness. Requires hevc codec.
+#  colors and distort brightness. Requires hevc (10bits) codec.
 #
 #  false - Standard dynamic range processing. Uses standard BT.709 
 #          color space equations. Best for normal non-HDR content.

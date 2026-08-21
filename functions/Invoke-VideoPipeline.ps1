@@ -40,6 +40,7 @@ function Invoke-VideoPipeline {
 	$hud_port      = $Config.hud_port
 	$gpu_id        = $Config.gpu_id
     $shaderFFmpeg  = $Pipeline.shaderFFmpeg
+	$gpuName       = $Pipeline.gpuName
 	$gpuColorFix   = $pipeline.gpuColorFix
 	$gpuVulkanArgs = $pipeline.gpuVulkanArgs
     $wOriginal     = $Metadata.wOriginal
@@ -49,15 +50,58 @@ function Invoke-VideoPipeline {
     $inPix         = $Metadata.pixFormat
     $inSpace       = $Metadata.colorSpace
     $inRange       = $Metadata.colorRange
+	$bitsFormat    = $Metadata.bitsFormat
+	$bitsOutput    = $Metadata.bitsOutput
+	$bitsDowngrade = $Metadata.bitsDowngrade
 	$placeboRange  = if ($inRange -eq "limited" -or $inRange -eq "tv") { "tv" } else { "pc" }
 	
-    # Montagem Rígida dos Filtros e Sufixos Originais
-	if ($gpuColorFix) { 
-		$vfString  = "format=gbrp,"
+	# Conversão de formatos para range Full
+	$mapaFormatosFull = @{
+		"yuvj420p"   = "yuv420p"
+		"yuvj422p"   = "yuv422p"
+		"yuvj444p"   = "yuv444p"
+		"nv12"       = "nv12"
+		"p010le"     = "p010le"
+		"p010"       = "p010le"
+		"yuv420p10le"= "yuv420p10le"
+		"yuv444p10le"= "yuv444p10le"
+	}
+	
+	# Conversão de 10 para 8bits usando formatos planares
+	$mapaFormatosDown = @{
+		"p010"        = "nv12"
+		"p010le"      = "nv12"
+		"yuv420p10le" = "yuv420p"
+		"yuv444p10le" = "yuv444p"
+	}
+	
+	$vfString  = ""
+	$formatFix = ""
+
+	# Trata formatos se colorRange for Full
+	if ($placeboRange -eq "pc" -and -not $gpuColorFix) {
+		if ($mapaFormatosFull.ContainsKey($inPix)) {
+			$inPix = $mapaFormatosFull[$inPix]
+		}
+	}
+
+	# Trata o downgrade de 10 para 8 bits
+	if (($bitsFormat -eq 10 -and $codec -eq "avc") -or $Metadata.bitsDowngrade -eq $true) {
+		if ($mapaFormatosDown.ContainsKey($inPix)) {
+			$inPix = $mapaFormatosDown[$inPix]
+		}
+	}
+	
+	# Trata colorFix
+	if ($gpuColorFix) {
+		if ($placeboRange -eq "pc") {
+			$vfString = "scale=in_range=pc:out_range=pc,format=gbrp,"
+		} else {
+			$vfString = "format=gbrp,"
+		}
 		$formatFix = "format=gbrp,shuffleplanes=0:1:2:3,"
-	} else {
-		$vfString  = ""
-		$formatFix = ""
+	} elseif ($placeboRange -eq "pc") {
+		$vfString  = "scale=in_range=pc:out_range=pc,format=${inPix},"
 	}
 	
 	$vfString += "hwupload,libplacebo=w=${widthOut}:h=${heightOut}"
@@ -74,11 +118,9 @@ function Invoke-VideoPipeline {
         $vfString += ":fps=${fps}:frame_mixer=$($pipeline.interpolate)"
         $sufixo += "_IFS_${fps}fps$($pipeline.interpolate.ToUpper())"
     }
+
     # string final do parametro filters para libplacebo
 	$vfString += ":colorspace=${inSpace}:color_primaries=${inSpace}:color_trc=${inSpace}:range=${inRange}:custom_shader_path='${shaderFFmpeg}',hwdownload,${formatFix}format=${inPix}"
-
-#debug    
-#Write-Host "`n[ vfString ] $vfString `n" -ForegroundColor Yellow
 
     # Definição do Arquivo de Saída Sufixos no nome
     $pastaSaida = [System.IO.Path]::GetDirectoryName($VideoPath)
@@ -113,6 +155,7 @@ function Invoke-VideoPipeline {
 		fpsOut          = $Metadata.fpsOut
 		Speed           = 0.0
 		Bitrate         = "N/A"
+		bitsDowngrade   = $bitsDowngrade
 		ErrorMessage    = $null
 	}
     $tsDuracao = [TimeSpan]::FromSeconds($Resultado.DuracaoVideo)
@@ -123,12 +166,6 @@ function Invoke-VideoPipeline {
 	
 	
     try {
-		
-	    # Intervalo de cores não pode ser Completo
-		# /**/ parece existir na libplacebo uma conversão do formato full para limited: realizar testes
-		if ($placeboRange -eq "pc") {
-			Throw "Full color format detected! Use Limited format."
-		}
 		
 		# Inicializa a escuta TCP
 		$listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, $hud_port)
@@ -155,10 +192,12 @@ function Invoke-VideoPipeline {
 							'-fps_mode passthrough ' +
 							'-c:v ' + $Global:SelectedCodec + ' ' +
 							($Global:CodecArgs -join ' ') + ' ' +
-							'-tag:v ' + $vTag + ' -c:a copy -y -gpu ' + $gpu_id + ' "' + $outFile + '"'
+							'-tag:v ' + $vTag + ' -c:a copy -y "' + $outFile + '"'
 
-#debug    
-#Write-Host "`n[ argumentosString ] $argumentosString `n" -ForegroundColor Yellow
+		#debug
+		if ($Config.debug -eq $true -or $Config.debug -eq "true") {
+			Write-Host "`n[ argumentosString ] $argumentosString `n" -ForegroundColor Yellow
+		}
 
 		# Dispara o FFmpeg enviando o fluxo de texto gerado para o arquivo de log
 		$processo = Start-Process -FilePath $ffmpeg -ArgumentList $argumentosString `
@@ -176,6 +215,7 @@ function Invoke-VideoPipeline {
 		$leitor = $null
 
 		try {
+			
 			if ($listener.Pending()) {
 				$clienteSocket = $listener.AcceptTcpClient()
 				$stream = $clienteSocket.GetStream()
@@ -192,25 +232,60 @@ function Invoke-VideoPipeline {
 				# ------------------------------------------------------------------
 				$layoutEstatico = @"
 
-------------------------------------------------------------------------------------
+--------------------------------------------------------[ Press Q key to abort ]----
   [File     ]: $($Metadata.NomeArquivo)
-  [Format   ]: $($Metadata.wOriginal)x$($Metadata.hOriginal)/$($metadata.fpsOriginal) -> $($Metadata.widthOut)x$($Metadata.heightOut)/$($Metadata.fpsOut)
+  [Format   ]: $($Metadata.wOriginal)x$($Metadata.hOriginal)/$($metadata.fpsOriginal) $($metadata.bitsFormat)-Bit -> $($Metadata.widthOut)x$($Metadata.heightOut)/$($Metadata.fpsOut) $($metadata.bitsOutput)-Bit 
   [Length   ]: $($timeDuracao)
 "@
 				Write-Host $layoutEstatico
 				
 				$ponteiros = @("-", "\", "|", "/")
 				$ponteiroPos = 0
-				
+				$porcentagem = 0
+				$larguraBarra = 25
+				$tempoAtualStr = "00:00:00"
+				$restanteStr = "00:00:00"
+
 				# Captura a posição do cursor após os dados estáticos. 
 				$posicaoOriginalCursor = $Host.UI.RawUI.CursorPosition
 				
+				Write-Host "  Loading...  "  -ForegroundColor Yellow
+
 				# LOOP DE PROCESSAMENTO DO HUD
 				while (-not $processo.HasExited -or $stream.DataAvailable) {
+
+					# verifica cancelamento pelo usuario
+					if ([Console]::KeyAvailable) {
+						$tecla = [Console]::ReadKey($true)
+						if ($tecla.Key -eq 'Q') {
+							# Finaliza o FFmpeg imediatamente
+							$processo | Stop-Process -Force -ErrorAction SilentlyContinue
+
+							#  Fecha cirurgicamente os sockets para liberar a porta $hud_port
+							if ($null -ne $leitor) { $leitor.Close(); $leitor.Dispose() }
+							if ($null -ne $clienteSocket) { $clienteSocket.Close(); $clienteSocket.Dispose() }
+							if ($null -ne $listener) { $listener.Stop() }
+
+							# Alimenta o objeto de resultado com a falha controlada
+							$Resultado.Success = $false
+							$Resultado.ErrorMessage = "Process canceled by the user pressing [ Q ]"
+							
+							# Restaura o cursor e sai da função de forma limpa
+							[Console]::CursorVisible = $true
+							return $Resultado
+						}
+						
+					}
+		
 					if ($stream.DataAvailable) {
 						$linha = $leitor.ReadLine()
 
-						if ($null -eq $linha) { break }
+						if ($null -eq $linha) { 
+							if ($processo.HasExited -and $processo.ExitCode -ne 0) {
+								throw "Critical error, pipeline finished. (ExitCode: $($processo.ExitCode))."
+							}
+							break 
+						}
 						
 						if ($linha -match "out_time_ms=(\d+)") { 
 							$outTimeMs = [double]$Matches[1] 
@@ -225,17 +300,14 @@ function Invoke-VideoPipeline {
 							
 							# Lógica de cálculo matemático do progresso
 							$tempoTotalMs = $Metadata.duracaoSegundos * 1000000
-							$porcentagem = 0
 							if ($tempoTotalMs -gt 0) {
 								$porcentagem = [int][math]::Min(100, [math]::Round(($outTimeMs / $tempoTotalMs) * 100, 0))
 							}                    
-							$tempoAtualStr = "00:00:00"
 							if ($outTimeMs -gt 0) {
 								# Converte microssegundos do FFmpeg para segundos e depois para TimeSpan
 								$tsAtual = [TimeSpan]::FromSeconds($outTimeMs / 1000000)
 								$tempoAtualStr = "{0:d2}:{1:d2}:{2:d2}" -f [int][math]::Truncate($tsAtual.TotalHours), $tsAtual.Minutes, $tsAtual.Seconds
 							}
-							$restanteStr = "00:00:00"
 							if ($velocidade -gt 0 -and $outTimeMs -lt $tempoTotalMs) {
 								$milisegundosRestantes = ($tempoTotalMs - $outTimeMs) / $velocidade
 								if ($milisegundosRestantes -gt 0) {
@@ -247,8 +319,7 @@ function Invoke-VideoPipeline {
 							$decorridoStr = "{0:d2}:{1:d2}:{2:d2}" -f [int][math]::Truncate($tsDecorrido.TotalHours), $tsDecorrido.Minutes, $tsDecorrido.Seconds
 
 							
-							# Montagem da Barra Visual (25 blocos)
-							$larguraBarra = 25
+							# Montagem da Barra Visual
 							$preenchido = [int][math]::Round(($porcentagem / 100) * $larguraBarra)
 							$vazio = $larguraBarra - $preenchido
 							$barraVisual = ("■" * $preenchido) + ("-" * $vazio)
@@ -269,36 +340,35 @@ function Invoke-VideoPipeline {
 							Write-Host $layoutDinamico -NoNewline
 						}
 					}
-					# Parece ser redundante essa espera, pois o if anterior ja controla o fluxo
-					#Start-Sleep -Milliseconds 5
 				}
 				
-				# ------------------------------------------------------------------
-				# Finaliza com atualização manual
-				# ------------------------------------------------------------------
-				$barraVisualFinal = "■" * 25
-				$layoutDinamicoFinal = @"
+				if ($porcentagem -ne 0) {
+					$barraVisualFinal = "■" * 25
+					$layoutDinamicoFinal = @"
   [Done     ]: $($timeDuracao)
   [Progress ]: [$barraVisualFinal] 100%
   [Speed    ]: $($velocidade.ToString('0.00'))x 
   [Elapsed  ]: $decorridoStr 
   [Left     ]: $restanteStr
 "@
-				$Host.UI.RawUI.CursorPosition = $posicaoOriginalCursor
-				Write-Host $layoutDinamicoFinal -NoNewline
-				
+					$Host.UI.RawUI.CursorPosition = $posicaoOriginalCursor
+					Write-Host $layoutDinamicoFinal -NoNewline
+
+				} else {
+					Throw "Critical error in video encoding!"
+				}
+
 				# Exibe novamente o cursor do terminal
 				[Console]::CursorVisible = $true
 				
 			} else {
-				Write-Warning "Impossible to connect to the HUD socket: $($hud_port)."
-				exit
+				# Se o timeout estourou ou o processo morreu antes de conectar
+				Throw  "Impossible to connect to the HUD socket: $($hud_port)."
 			}
-		}
-		catch {
-			Throw "Impossible to connect to the HUD socket: $($hud_port)."
-		}
-		finally {
+		} catch {
+			Throw $_.Exception.Message 
+			
+		} finally {
 			if ($null -ne $leitor) { $leitor.Close() }
 			if ($null -ne $clienteSocket) { $clienteSocket.Close() }
 			$listener.Stop()
@@ -337,7 +407,7 @@ function Invoke-VideoPipeline {
         if ($cronometro.IsRunning) { $cronometro.Stop() }
         $Resultado.Success        = $false
         $Resultado.TempoDecorrido = $cronometro.Elapsed
-		$Resultado.ErrorMessage   = $_.Exception.Message + ". Error during the native FFmpeg call."
+		$Resultado.ErrorMessage   = $_.Exception.Message
 	} finally {
         # Limpa o escopo do ambiente para blindar o próximo arquivo do loop
         Remove-Item Env:\FFREPORT -ErrorAction SilentlyContinue

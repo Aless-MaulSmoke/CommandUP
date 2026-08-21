@@ -8,7 +8,20 @@ param (
     [PSCustomObject]$Pipeline
 )
 
-    # 1. Extração de Metadados via FFprobe
+	# formatos suportados e raw bits
+	$tabelaFormatos = @{
+		"yuvj420p"    = 8
+		"yuv420p"     = 8
+		"nv12"        = 8
+		"yuvj444p"    = 8
+		"yuv444p"     = 8
+		"p010le"      = 10
+		"p010"        = 10
+		"yuv420p10le" = 10
+		"yuv444p10le" = 10
+	}
+
+    # Extração de Metadados via FFprobe
 	$ffprobeArgs = @(
 		"-v", 
 		"error",
@@ -19,7 +32,10 @@ param (
 		"-of", 
 		"csv=p=0",
 		$VideoPath
-	)	
+	)
+	
+	[int]$bitsOutput = 0
+	[bool]$bitsDowngrade = $false
 
 	try {
 		$probeOutput = & $Pipeline.ffprobe $ffprobeArgs 2>$null
@@ -44,18 +60,40 @@ param (
 		$fpsParts    = $fpsRaw -split '/'
 		$fpsOriginal = [math]::Round(([double]$fpsParts[0] / [double]$fpsParts[1]), 2)
 
-		# Normalização estrita para as diretrizes das APIs scale_vulkan e libplacebo
 		if ($colorRange -eq "tv") { $colorRange = "limited" }
 		if ($colorRange -eq "pc") { $colorRange = "full" }
 
-		if ([string]::IsNullOrEmpty($pixFormat)  -or $pixFormat  -eq "unknown") { $pixFormat  = "nv12" }
-		if ([string]::IsNullOrEmpty($colorSpace) -or $colorSpace -eq "unknown") { $colorSpace = "bt709" }
+		if ($tabelaFormatos.ContainsKey($pixFormat)) {
+			[int]$bitsFormat = $tabelaFormatos[$pixFormat]
+		} else {
+			throw "Error: The video format '$pixFormat' is not certified or supported."
+		}
+		
+		# Herda profundidade de bits do video original
+		[int]$bitsOutput = $bitsFormat
+		[bool]$bitsDowngrade = $false
+
+		# Bloqueio Crítico caso tente gerar HDR com video de origem que não seja 10bits
+		if (($Config.HDR -eq $true -or $Config.HDR -eq "true") -and ($bitsFormat -ne 10 -or $Config.codec.ToLower() -ne "hevc")) {
+			return [PSCustomObject]@{
+				Success     = $false
+				SkipVideo   = $true
+				Reason      = "Critical Error: HDR mode strictly requires a 10-bit HEVC source video."
+				NomeArquivo = [System.IO.Path]::GetFileName($VideoPath)
+			}
+		}
+
+		# Força downgrade para 8bits se hevc não tiver suporte a 10bits na vcard
+		if ($bitsFormat -eq 10 -and $Config.codec.ToLower() -eq "hevc" -and $Pipeline.codec10BitsSupp -eq $false) {
+			$bitsOutput = 8
+			$bitsDowngrade = $true
+		}
 		
 	} catch {
         return [PSCustomObject]@{
             Success = $false
             SkipVideo = $true
-            ErrorMessage = "Failed to extract metadata via FFprobe. File is corrupted or incompatible."
+            Reason = "Failed to extract metadata via FFprobe. File is corrupted or incompatible."
             NomeArquivo = [System.IO.Path]::GetFileName($VideoPath)
         }
     }
@@ -74,7 +112,6 @@ param (
 			# Limpa o 'x' se houver e padroniza o ponto decimal para o cálculo numérico [1.1]
 			$fatorLimpo    = $Matches[1].Replace(',', '.')
 			$multiplicador = [double]$fatorLimpo
-			
 			$widthOut      = [int]($wOriginal * $multiplicador)
 			$heightOut     = [int]($hOriginal * $multiplicador)
 		} elseif ($scaleStr -match '^\d+x\d+$') {
@@ -108,6 +145,9 @@ param (
 		wOriginal       = $wOriginal
 		hOriginal       = $hOriginal
 		pixFormat       = $pixFormat
+		bitsFormat      = $bitsFormat
+		bitsOutput      = $bitsOutput
+		bitsDowngrade   = $bitsDowngrade
 		colorSpace      = $colorSpace
 		colorRange      = $colorRange
 		fpsOriginal     = $fpsOriginal
@@ -118,4 +158,5 @@ param (
 		skipFSR         = $isResolutionRedundant
 		skipIFS         = $isFpsRedundant
     }
+	
 }

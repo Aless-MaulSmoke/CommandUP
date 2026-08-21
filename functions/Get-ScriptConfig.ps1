@@ -22,6 +22,7 @@ function Get-ScriptConfig {
 		verbose      = $null
 		gpu_id       = $null
 		simulate_gpu = $null
+		debug        = $false
     }
 
 	# Descobre a pasta raiz subindo um nível a partir da pasta 'functions'

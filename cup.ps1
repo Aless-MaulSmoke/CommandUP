@@ -1,11 +1,11 @@
 ﻿# ==========================================================================
 # ------------------------------
 #
-#   Command UP (cup) Pipeline (v1.0.1)
+#   Command UP (cup) Pipeline (v1.0.2)
 #   An automated pipeline for high-performance video upscaling via CLI.
 #
 #   cup.ps1 (Powershell script)
-#   2026/08/07
+#   2026/08/20
 #   by Aless (MaulSmoke)
 #
 #   A modular script designed to orchestrate lightweight, hardware-accelerated 
@@ -33,10 +33,10 @@
 #   The edge crispness applied by FSR, ranging from 0 to 10 (Default is 5).
 #
 #  -codec
-#   Selects the video encoding standard for the output file: "avc", "hevc".
+#   Select the video encoding standard for the output file: "avc", "hevc". (avc supports 8-bit videos and hevc supports 8- and 10-bit videos).
 #
 #  -hdr
-#   Switch flag to force the FSR pass into the PQ color space pipeline (HDR10 source only), requires hevc codec.
+#   Switch flag to force the FSR pass into the PQ color space pipeline (HDR10 source only), requires hevc (10bits) codec.
 #
 #  -shutdown
 #   Switch flag to trigger a safe 30-second system power-off countdown after execution.
@@ -70,7 +70,8 @@ param(
     [int]$hud_port,
 	[switch]$verbose,
 	[int]$gpu_id,
-	[string]$simulate_gpu = "none"
+	[string]$simulate_gpu = "none",
+	[switch]$debug = $false
 )
 
 # =====================================================================
@@ -103,7 +104,7 @@ $Config = Get-ScriptConfig -BoundParameters $PSBoundParameters
 # Inicializa o ambiente global e shaders
 $Pipeline = Initialize-GlobalPipeline -Config $Config
 
-# Cria a fila uniforme de processamento
+# Cria a fila de processamento
 $FilaTrabalho = Get-VideoQueue -Config $Config
 
 # Inicializa o objeto acumulador para as Estatísticas Gerais
@@ -123,7 +124,12 @@ foreach ($VideoAtual in $FilaTrabalho) {
     
     # Extração de Metadados e Validação de Redundância por Arquivo
     $Metadata = Get-VideoMetadataAndValidate -VideoPath $VideoAtual -Config $Config -Pipeline $Pipeline
-    
+	
+	#debug
+	if ($Config.debug -eq $true -or $Config.debug -eq "true") {
+		Write-Host "`n[ Metadata ] $Metadata `n" -ForegroundColor Yellow
+	}
+	
     # Se o arquivo foi pulado por redundância ou falha no FFprobe
 	if ($Metadata.SkipVideo) {
 		$Global:SessionHistory += $Metadata

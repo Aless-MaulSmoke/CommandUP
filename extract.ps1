@@ -1,7 +1,7 @@
 ﻿# ==========================================================================
 # ------------------------------
 #
-#   CommandUP (cup) Pipeline - Core Processing Engine (v1.0.1)
+#   CommandUP (cup) Pipeline - Core Processing Engine (v1.0.2)
 #   Automated pipeline for video upscaling (FSR) and frame interpolation (IFS).
 #
 #   extract.ps1 (Powershell script)

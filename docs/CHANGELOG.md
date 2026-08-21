@@ -6,10 +6,17 @@ All notable changes to this project will be documented in this file. This projec
 
 ## ☕ CommandUP Era
 
+### CUP [v1.0.2] - 2026-08-18
+* **CPU-based encoding:** Some graphics cards do not support GPU-based encoding; in such cases, the video will automatically be encoded using the CPU.
+* **Added support to colorRange FULL video:** Besides Limited colorRange, it's now possible to process videos in Full colorRange separately, making sure the exact contrast (whether Limited or Full) is identified and handled correctly per file.
+* **Downscaling of video support from 10-bit to 8-bit:** If the codec is set to AVC and 10-bit HEVC video is used, the final video will be converted to 8-bit AVC; alternatively, if the codec is HEVC and the video is 10-bit but the graphics card only supports 8-bit HEVC, the video will also be downgraded to 8-bit.
+* **gpu_id setting:** Fixed an issue where the system listed the desired GPU but could end up using a different one.
+* **Abort processes:** A video currently being processed can now be aborted by pressing the Q key.
+ 
+
 ### CUP [v1.0.1] - 2026-08-06
 * **Added `-codec` Parameter:** Added native support for selecting the video encoding standard. **avc** for (H.264) legacy hardware or maximum device compatibility, and **hevc** for (H.265) better compression efficiency, smaller file sizes, and high dynamic range processing.
 * **[NVIDIA] Critical Fix for Error -22 via Vulkan/libplacebo:** Addresses a change in NVIDIA driver behavior where native allocation of multiple image planes is rejected in current drivers. A fix was implemented using a flag that resolves the GeForce driver's memory intolerance without requiring invasive pixel format conversions.
-
 
 ### CUP [v1.0.0] - 2026-08-03
 * **Project Renamed:** *FSRIFS* has been officially renamed to **CommandUP**, with the abbreviation **(cup)**. This change brings a fresh perspective and simplifies the pronunciation of the pipeline. May CommandUP become an incredible tool for everyone.

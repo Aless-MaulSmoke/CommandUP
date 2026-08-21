@@ -156,8 +156,10 @@
     <h2>Requisitos e Dependências de Hardware</h2>
     <p>Para que a CUP Pipeline de pós-processamento funcione corretamente no seu computador, o seu sistema precisa cumprir as seguintes dependências físicas e de software:</p>
     <ul>
-		<li><strong>Desenvolvido especificamente para</strong>: Windows 10 e Windows 11 (64 bits). Baseia-se em scripts PowerShell nativos do Windows, pipelines de automação em lote (Batch) e vinculações de terminal específicas do Windows. Linux (incluindo Wine/Proton) e macOS NÃO são suportados.</li>        <li><strong>Compatibilidade com API Vulkan <span class="badge">Obrigatório</span>:</strong> A sua placa de vídeo precisa ter suporte nativo à tecnologia Vulkan. Funciona em placas de vídeo dedicadas (AMD RX, Nvidia GTX/RTX) e também em chips integrados (AMD Vega ou Intel HD Graphics mais recentes). Se a sua GPU não tiver suporte a Vulkan, o processo não iniciará.</li>
+		<li><strong>Desenvolvido especificamente para</strong>: Windows 10 e Windows 11 (64 bits). Baseia-se em scripts PowerShell nativos do Windows, pipelines de automação em lote (Batch) e vinculações de terminal específicas do Windows. Linux (incluindo Wine/Proton) e macOS NÃO são suportados.</li>
+		<li><strong>Compatibilidade com API Vulkan <span class="badge">Obrigatório</span>:</strong> A sua placa de vídeo precisa ter suporte nativo à tecnologia Vulkan 1.3 ou superior. Funciona em placas de vídeo dedicadas (AMD RX, Nvidia GTX/RTX) e também em chips integrados (AMD Vega ou Intel HD Graphics mais recentes). Se a sua GPU não tiver suporte a Vulkan, o processo não iniciará.</li>
         <li><strong>Processador (CPU):</strong> Qualquer processador básico de 4 ou 6 núcleos antigos (como a linha AMD FX ou Intel Core de gerações passadas) é perfeitamente capaz de rodar a CUP Pipeline. O uso médio de CPU fica na casa dos 45%, mantendo o Windows totalmente livre de travamentos ou superaquecimento durante a renderização.</li>
+        <li><strong>Placa de Vídeo (GPU):</strong> Com suporte a vulkan 1.3 ou superior. </li>
         <li><strong>Memória de Vídeo (VRAM):</strong> Placas de vídeo legadas com 2GB de VRAM dão conta do recado tranquilamente se o usuário operar com inteligência. Recomenda-se fechar navegadores de internet, Discord e jogos em segundo plano antes de iniciar o processo em resoluções altas (como 2K ou 4K) to evitar estouro de memória da placa.</li>
         <li><strong>Sistema Operacional:</strong> Windows 10 ou Windows 11 de 64-bits com o terminal PowerShell ativo e liberado para execução de scripts.</li>
     </ul>
@@ -237,11 +239,11 @@ SHUTDOWN=false
         <li><code>-sharpness número</code>: Nitidez aplicada pelo FSR indo de <code>0</code> (mínimo) até <code>10</code> (máximo).</li>
         <li><code>-codec "avc|hevc"</code>: Seleciona o padrão de codificação de vídeo para o arquivo de saída:
             <ul>
-                <li><code>avc</code>: Advanced Video Coding (H.264). Recomendado para máxima compatibilidade e placas de vídeo mais antigas ou legadas.</li>
-                <li><code>hevc</code>: High Efficiency Video Coding (H.265). Oferece melhor compressão e arquivos menores. Necessário para o modo HDR.</li>
+                <li><code>avc</code>: Advanced Video Coding (H.264) 8bits. Recomendado para máxima compatibilidade e placas de vídeo mais antigas ou legadas.</li>
+                <li><code>hevc</code>: High Efficiency Video Coding (H.265) 8 e 10bits. Oferece melhor compressão e arquivos menores. Necessário para o modo HDR.</li>
             </ul>
         </li>
-        <li><code>-hdr "false|true"</code>: Ativa o processamento de high dynamic range (HDR) dentro do FSR. AVISO: Isso NÃO é qualidade de "Alta Definição" (HD)! Ativar essa opção em um vídeo comum (não HDR) arruinará as cores e distorcerá o brilho. Exige codec hevc.
+        <li><code>-hdr "false|true"</code>: Ativa o processamento de high dynamic range (HDR) dentro do FSR. AVISO: Isso NÃO é qualidade de "Alta Definição" (HD)! Ativar essa opção em um vídeo comum (não HDR) arruinará as cores e distorcerá o brilho. Exige codec hevc (10bits).
             <ul>
                 <li><code>false</code>: Utiliza equações padrão do espaço de cores. Ideal para conteúdo normal não HDR.</li>
                 <li><code>true</code>: Força o FSR a utilizar o espaço de cores PQ. DEVE SER ATIVADO APENAS se o vídeo de origem possuir gama PQ (HDR10).</li>

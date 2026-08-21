@@ -40,7 +40,7 @@ function Out-GlobalSummary {
         # MODO LOTE: Cabeçalhos com titulos das colunas
 		Write-Host "`n"
 		Write-Host "====================================================================================" -ForegroundColor Cyan
-		Write-Host " STATUS    | SPEED      | TIME     | FILE " -ForegroundColor Yellow
+		Write-Host " STATUS    | SPEED      | ELAPSED  | FILE " -ForegroundColor Yellow
 		Write-Host "------------------------------------------------------------------------------------" -ForegroundColor DarkGray
 
 		if ($Global:SessionHistory) {
@@ -82,7 +82,7 @@ function Out-GlobalSummary {
  	Write-Host "     \______  /\____/|__|_|  /__|_|  (____  /___|  /\____ |  |______/  |____|       " -ForegroundColor White
 	Write-Host "            \/             \/      \/     \/     \/      \/                         " -ForegroundColor White
 	Write-Host "                                                                                    "
-	Write-Host "        [ Author  : Aless(MaulSmoke) | Community: YT/toPlayAless ]     cup v1.0.1   " -ForegroundColor Gray
+	Write-Host "        [ Author  : Aless(MaulSmoke) | Community: YT/toPlayAless ]     cup v1.0.2   " -ForegroundColor Gray
 	Write-Host "------------------------------------------------------------------------------------" -ForegroundColor DarkGray
 	Write-Host "  Quality: $($Config.quality.ToUpper())  Resolution: $($InfoBanner.widthOut)x$($InfoBanner.heightOut)  Sharpness: $($Config.sharpness)  FPS: $($InfoBanner.fpsOut)  Interp: $($Config.interpolate)" -ForegroundColor White
 	Write-Host "====================================================================================" -ForegroundColor Cyan

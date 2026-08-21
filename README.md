@@ -1,4 +1,4 @@
-# CommandUP (cup) Pipeline v1.0.1 — Upscale + Frame Interpolator 🎬
+# CommandUP (cup) Pipeline v1.0.2 — Upscale + Frame Interpolator 🎬
 
 > **Lightweight, autonomous video post-processing pipeline built exclusively for Windows.** Bring the "Lossless Scaling" workflow to your offline local video files on low-end and legacy hardware.
 
@@ -23,7 +23,7 @@ Unlike mainstream tools that rely on heavy Artificial Intelligence, modern neura
 
 To ensure total system stability and prevent memory crashes, your computer must meet the following requirements:
 
-* **Vulkan API Compatibility (MANDATORY):** Your graphics card must have native support for Vulkan. Works on dedicated GPUs (AMD RX, Nvidia GTX/RTX) and recent integrated chips (AMD Vega/Intel HD Graphics). *If Vulkan is missing, the process will not start.*
+* **Vulkan API Compatibility (MANDATORY):** Your graphics card must have native support for Vulkan 1.3 or higher. Works on dedicated GPUs (AMD RX, Nvidia GTX/RTX) and recent integrated chips (AMD Vega/Intel HD Graphics). *If Vulkan is missing, the process will not start.*
 * **Processor (CPU):** Any basic 4 or 6-core legacy processor (e.g., AMD FX or older Intel Core). Average CPU usage remains around 45%, keeping Windows smooth and free from overheating.
 * **Video Memory (VRAM):** Legacy cards with **2GB of VRAM** are sufficient if used smartly. *Tip: Highly recommended to close web browsers, Discord, and background games before processing high resolutions (2K/4K) to prevent memory overflow.*
 * **Operating System:** Windows 10 or Windows 11 (64-bit) with an active PowerShell terminal allowed to execute scripts.
@@ -91,9 +91,9 @@ This is the core modular script used for upscaling and frame interpolation. Cust
   * `big`: Maximum visual fidelity and high bitrate, meant for archival.
 * `-sharpness [0-10]`: FSR sharpness filtering strength, ranging from `0` to `10`.
 * `-codec "avc|hevc"`: Selects the video encoding standard for the output file.
-  * `avc`: Advanced Video Coding (H.264). Recommended for maximum compatibility and older/legacy graphics cards.
-  * `hevc`: High Efficiency Video Coding (H.265). Provides better compression and smaller file sizes. Required for HDR mode.
-* `-hdr "false|true"`: Enables High Dynamic Range processing. *Warning: This is NOT "High Definition" (HD). Enabling this on standard non-HDR videos will distort colors and brightness. Requires hevc codec.*
+  * `avc`: Advanced Video Coding (H.264) 8bits. Recommended for maximum compatibility and older/legacy graphics cards.
+  * `hevc`: High Efficiency Video Coding (H.265) 8 and 10bits. Provides better compression and smaller file sizes. Required for HDR mode.
+* `-hdr "false|true"`: Enables High Dynamic Range processing. *Warning: This is NOT "High Definition" (HD). Enabling this on standard non-HDR videos will distort colors and brightness. Requires hevc 10bits codec.*
   * `false`: Standard color space.
   * `true`: Forces FSR to use PQ color space (only use if source video is HDR10/PQ).
 * `-shutdown "false|true"`: Computer shutdown behavior. Defaults to `false`.

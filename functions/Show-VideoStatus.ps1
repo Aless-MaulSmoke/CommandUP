@@ -12,18 +12,17 @@ function Show-VideoStatus {
     # Se o arquivo foi pulado por redundância
     if ($Result.SkipVideo) {
 		Write-Host "`n------------------------------------------------------------------------------------" -ForegroundColor White
-		Write-Host "[SKIPPED] $nomeArquivo" -ForegroundColor Yellow
-		Write-Host "`          $($Result.Reason)" -ForegroundColor Yellow
+		Write-Host "`  [SKIPPED] $nomeArquivo" -ForegroundColor Yellow
+		Write-Host "`            $($Result.Reason)" -ForegroundColor Yellow
 		$StatusAcumulado.Value.TotalPulados++
 		return
     }
 
     # Se o arquivo falhou no FFmpeg ou FFprobe
     if (-not $Result.Success) {
-		Write-Host "`n------------------------------------------------------------------------------------" -ForegroundColor White
-		Write-Host "[FAIL]    $nomeArquivo" -ForegroundColor Red
-		Write-Host "          $($Result.ErrorMessage)" -ForegroundColor Red
-		Write-Host "          Check the log file." -ForegroundColor DarkGray
+		Write-Host "`n  [FAIL]    $nomeArquivo" -ForegroundColor Red
+		Write-Host "            $($Result.ErrorMessage)" -ForegroundColor Red
+		Write-Host "            Check the log file." -ForegroundColor DarkGray
 		$StatusAcumulado.Value.TotalFalhas++
 		return
     }
@@ -67,7 +66,10 @@ function Show-VideoStatus {
     }
 
     # Mini relatório em linha única
-    Write-Host "[SUCCESS] " -NoNewline -ForegroundColor Green
+    Write-Host "  [SUCCESS] " -NoNewline -ForegroundColor Green
+	if ($Result.bitsDowngrade -eq $true -or $Result.bitsDowngrade -eq "true") {
+		Write-Host "`            GPU doesn't support 10-bit HEVC. Downgraded to 8-bit." -ForegroundColor Yellow
+	}
     Write-Host "| Time: $tempoRender | Speed: $speedFactor | Size: $tamanhoFinalStr | Bitrate: $bitrateStr" -ForegroundColor Gray
 
     # Acumula os dados globais para o relatório final
