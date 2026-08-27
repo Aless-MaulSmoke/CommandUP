@@ -6,6 +6,16 @@ All notable changes to this project will be documented in this file. This projec
 
 ## ☕ CommandUP Era
 
+### CUP [v1.0.3] - 2026-08-27
+* **HUD_PORT parameter renamed to PORT:** The change aims to improve ease of use and ensure the parameter is correctly interpreted.
+* **New parameter: -format:** You can now specify the final format in which the video will be saved ("mp4" or "mkv"). The MP4 focuses on compatibility. Preserves only the main audio track and completely removes embedded subtitles.The MKV designed for composite media. Preserves multiple audio tracks and embedded subtitles.
+* **New parameter: -simulate "none|cpu|nvidia|amd|intel":** Try simulating other cards. Use "cpu" to force encoding via the processor. For "Nvidia, AMD, and Intel," a properly configured Vulkan SDK is required. Parameter editable via the config.ini file, or use via the command line.
+* **New parameter: -debug:** Displays technical information on the HUD for debugging. Parameter editable via the config.ini file, or use via the command line.
+* **Fixed a bug with HDR videos.:** HDR processing now mandates 10-bit HEVC encoding, BT.2020 color space, and SMPTE ST 2084 color transfer. It is no longer possible to downgrade HDR videos to 8-bit or 10-bit SDR.
+* **Fixed an issue with the vCard encoding capability test:** Some vCards were failing the 8 and 10-bit encoding capability test, forcing encoding via the CPU.
+* **Fixed issues with AMD Vega 8:** Support for the Vega 8 was already in place, but an adjustment was required to ensure compatibility with the latest updates.
+* **MKV Video Fixes:** Previous updates had broken MKV file playback. Fix applied.
+ 
 ### CUP [v1.0.2] - 2026-08-18
 * **CPU-based encoding:** Some graphics cards do not support GPU-based encoding; in such cases, the video will automatically be encoded using the CPU.
 * **Added support to colorRange FULL video:** Besides Limited colorRange, it's now possible to process videos in Full colorRange separately, making sure the exact contrast (whether Limited or Full) is identified and handled correctly per file.
@@ -13,7 +23,6 @@ All notable changes to this project will be documented in this file. This projec
 * **gpu_id setting:** Fixed an issue where the system listed the desired GPU but could end up using a different one.
 * **Abort processes:** A video currently being processed can now be aborted by pressing the Q key.
  
-
 ### CUP [v1.0.1] - 2026-08-06
 * **Added `-codec` Parameter:** Added native support for selecting the video encoding standard. **avc** for (H.264) legacy hardware or maximum device compatibility, and **hevc** for (H.265) better compression efficiency, smaller file sizes, and high dynamic range processing.
 * **[NVIDIA] Critical Fix for Error -22 via Vulkan/libplacebo:** Addresses a change in NVIDIA driver behavior where native allocation of multiple image planes is rejected in current drivers. A fix was implemented using a flag that resolves the GeForce driver's memory intolerance without requiring invasive pixel format conversions.

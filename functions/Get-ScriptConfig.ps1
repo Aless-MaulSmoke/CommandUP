@@ -9,19 +9,20 @@ function Get-ScriptConfig {
     $config = [PSCustomObject]@{
 		file         = $null
 		folder       = $null
-		quality      = $null
+		format       = "mp4"
+		quality      = "MED"
 		fps          = $null
-		interpolate  = $null
+		interpolate  = "none"
 		scale        = $null
-		sharpness    = $null
-		codec        = $null
-		hdr          = $null
-		shutdown     = $null
+		sharpness    = 5
+		codec        = "AVC"
+		hdr          = $false
+		shutdown     = $false
 		drag_config  = $false
-		hud_port     = $null
-		verbose      = $null
-		gpu_id       = $null
-		simulate_gpu = $null
+		port         = 50548
+		verbose      = $false
+		gpu_id       = 0
+		simulate     = "NONE"
 		debug        = $false
     }
 
@@ -32,7 +33,7 @@ function Get-ScriptConfig {
 	# Carrega parametros do config.ini
 	if (Test-Path $caminhoConfigIni) {
 		# Busca apenas as chaves necessárias no arquivo de texto
-		$chavesNecessarias = @("HUD_PORT", "VERBOSE", "GPU_ID")
+		$chavesNecessarias = @("PORT", "VERBOSE", "GPU_ID", "SIMULATE", "DEBUG")
 		$conteudoTxt = Get-Content $caminhoConfigIni
 
 		foreach ($chave in $chavesNecessarias) {
@@ -66,7 +67,7 @@ function Get-ScriptConfig {
 			$config.drag_config = $true
 
 			# Busca apenas as chaves necessárias no arquivo de texto
-			$chavesNecessarias = @("QUALITY", "FPS", "INTERPOLATE", "SCALE", "SHARPNESS", "CODEC", "HDR", "SHUTDOWN")
+			$chavesNecessarias = @("FORMAT", "QUALITY", "FPS", "INTERPOLATE", "SCALE", "SHARPNESS", "CODEC", "HDR", "SHUTDOWN")
 			$conteudoTxt = Get-Content $caminhoDragConfig
 
 			foreach ($chave in $chavesNecessarias) {
@@ -99,28 +100,35 @@ function Get-ScriptConfig {
 		7 = "The 'sharpness' parameter only accepts numbers between 0 and 10"
 		8 = "The 'hdr' parameter only accepts true or false."
 		9 = "The 'shutdown' parameter only accepts true or false."
-		10 = "The 'hud_port' the parameter must be a valid integer number."
+		10 = "The 'port' the parameter must be a valid integer number."
 		11 = "The 'verbose' parameter only accepts true or false."
 		12 = "The 'gpu_id' parameter must be a valid number."
-		13 = "The 'simulate_gpu' parameter only accepts one of these valid options: none | nvidia | amd | intel | cpu "
+		13 = "The 'simulate' parameter only accepts one of these valid options: none | nvidia | amd | intel | cpu "
 		14 = "The 'codec' parameter only accepts one of these valid options: avc | hevc "
 		15 = "The 'hdr' parameter requires the codec to be hevc."
+		16 = "The 'debug' parameter only accepts true or false."
+		17 = "The 'format' parameter only accepts one of these valid formats: mp4 | mkv "
+
     }
     $errosEncontrados = @()
 
-    # valida: FILE e FOLDER
+    # valida: FILE e FOLDER ----------------------------------------------------
     if ($config.file -and $config.folder) { $errosEncontrados += 1 }
     if (-not $config.file -and -not $config.folder) { $errosEncontrados += 2 }
 
-    # valida: QUALITY
-    if ($null -ne $config.quality) {
-        $config.quality = [string]$config.quality.ToString().ToUpper()
-        if ($config.quality -notin @("LOW", "MED", "BIG")) { $errosEncontrados += 3 }
-    } else {
-        $config.quality = "MED" # Valor padrão de segurança agora atribui com sucesso!
-    }
+    # valida: FORMAT -----------------------------------------------------------
+	$config.format = $config.format.ToLower().Trim()
+	if (-not (Match_Validation $config.format @("mp4", "mkv"))) {
+		$errosEncontrados += 16
+	}
 
-    # valida: FPS
+    # valida: QUALITY ----------------------------------------------------------
+	$config.quality = $config.quality.ToUpper().Trim()
+	if (-not (Match_Validation $config.quality @("LOW", "MED", "BIG"))) {
+		$errosEncontrados += 3
+	}
+
+    # valida: FPS --------------------------------------------------------------
     if ($null -ne $config.fps -and $config.fps -as [int]) {
         $config.fps = [int]$config.fps
         if ($config.fps -le 0) { $errosEncontrados += 4 }
@@ -128,16 +136,13 @@ function Get-ScriptConfig {
         if ($null -eq $config.fps) { $config.fps = 0 } else { $errosEncontrados += 4 }
     }
 
-    # valida: INTERPOLATE
-    if ($null -ne $config.interpolate) {
-        $config.interpolate = [string]$config.interpolate.ToString().ToLower()
-        $interpolacoesValidas = @("none", "oversample", "mitchell_clamp", "linear")
-        if ($config.interpolate -notin $interpolacoesValidas) { $errosEncontrados += 5 }
-    } else {
-        $config.interpolate = "none"
-    }
+    # valida: INTERPOLATE ------------------------------------------------------
+	$config.interpolate = $config.interpolate.ToLower().Trim()
+	if (-not (Match_Validation $config.interpolate @("none", "oversample", "mitchell_clamp", "linear"))) {
+		$errosEncontrados += 5
+	}
 
-    # valida: SCALE
+    # valida: SCALE ------------------------------------------------------------
     if ($null -ne $config.scale -and $config.scale -ne "") {
         $config.scale = [string]$config.scale.ToString().Trim().ToLower()
 
@@ -167,7 +172,7 @@ function Get-ScriptConfig {
         $config.scale = $null 
     }
 
-	# valida: SHARPNESS
+	# valida: SHARPNESS --------------------------------------------------------
 	if ($null -ne $config.sharpness -and $config.sharpness -ne "") {
 		# Correção: Armazena o resultado da conversão e valida se ela é válida (não nula)
 		$valorInt = $config.sharpness -as [int]
@@ -183,87 +188,66 @@ function Get-ScriptConfig {
 		$config.sharpness = 0 
 	}
 
-    # valida: CODEC
-    if ($null -ne $config.codec) {
-        $config.codec = [string]$config.codec.ToString().ToUpper()
-        $codecsValidas = @("AVC", "HEVC")
-        if ($config.codec -notin $codecsValidas) { $errosEncontrados += 14 }
+    # valida: SHUTDOWN ---------------------------------------------------------
+	if (-not (Boolean_Validation $config.shutdown)) {
+		$errosEncontrados += 9
+	}
+	$config.shutdown = [bool]::Parse($config.shutdown)
+
+    # valida: PORT
+    if ($null -ne $config.port -and $config.port -as [int]) {
+        $config.port = [int]$config.port
     } else {
-        $config.codec = "AVC"
-    }
-
-    # valida: HDR
-    $valorFinalHdr = $false
-    $existeHdr = $null -ne $config.hdr -and $config.hdr -ne ""
-    if ($existeHdr) {
-        $strTesteHdr = $config.hdr.ToString().ToLower().Trim()
-        if ($strTesteHdr -notin @("true", "false")) {
-            $errosEncontrados += 8
-        } else {
-            $valorFinalHdr = ($strTesteHdr -eq "true")
-            
-            # Se o HDR for ativado, o único codec aceito no momento é o HEVC
-            if ($valorFinalHdr -and $config.codec -ne "HEVC") {
-                $errosEncontrados += 15
-            }
-        }
-    }
-    $config.hdr = $valorFinalHdr
-
-    # valida: SHUTDOWN
-    $valorFinalShutdown = $false
-    $existeShutdown = $null -ne $config.shutdown -and $config.shutdown -ne ""
-    if ($existeShutdown) {
-        $strTesteShutdown = $config.shutdown.ToString().ToLower().Trim()
-        if ($strTesteShutdown -notin @("true", "false")) {
-            $errosEncontrados += 9
-        } else {
-            $valorFinalShutdown = ($strTesteShutdown -eq "true")
-        }
-    }
-    $config.shutdown = $valorFinalShutdown
-
-    # valida: HUD_PORT
-    if ($null -ne $config.hud_port -and $config.hud_port -as [int]) {
-        $config.hud_port = [int]$config.hud_port
-    } else {
-        if ($null -eq $config.hud_port -or $config.hud_port -eq "") { 
-            $config.hud_port = 4867 
+        if ($null -eq $config.port -or $config.port -eq "") { 
+            $config.port = 50548 
         } else { 
             $errosEncontrados += 10 
         }
     }
 
-    # valida: VERBOSE
-    $valorFinalVerbose = $false
-    $existeVerbose = $null -ne $config.verbose -and $config.verbose -ne ""
-    if ($existeVerbose) {
-        $strTesteVerbose = $config.verbose.ToString().ToLower().Trim()
-        if ($strTesteVerbose -notin @("true", "false")) {
-            $errosEncontrados += 11
-        } else {
-            $valorFinalVerbose = ($strTesteVerbose -eq "true")
-        }
-    }
-    $config.verbose = $valorFinalVerbose
-
-    # valida: GPU_ID
+    # valida: VERBOSE ----------------------------------------------------------
+	if (-not (Boolean_Validation $config.verbose)) {
+		$errosEncontrados += 11
+	}
+	$config.verbose = [bool]::Parse($config.verbose)
+	
+    # valida: GPU_ID -----------------------------------------------------------
     if ($config.gpu_id -ne $null -and $config.gpu_id -match '^\d+$' -and [int]$config.gpu_id -ge 0) {
         $config.gpu_id = [int]$config.gpu_id
     } else {
         $errosEncontrados += 12
     }
 
-    # valida: SIMULATE_GPU
-	if ($null -ne $config.simulate_gpu -and $config.simulate_gpu -ne "") {
-		$config.simulate_gpu = [string]$config.simulate_gpu.ToString().ToUpper().Trim()
-		$gpusValidas = @("NONE", "NVIDIA", "AMD", "INTEL", "CPU")
-		if ($config.simulate_gpu -notin $gpusValidas) { $errosEncontrados += 13 }
-	} else {
-		# Se veio nulo ou vazio (porque não foi digitado na CLI), assume o padrão maiúsculo para o seu if de hardware funcionar
-		$config.simulate_gpu = "NONE"
+    # valida: SIMULATE ---------------------------------------------------------
+	$config.simulate = $config.simulate.ToUpper().Trim()
+	if (-not (Match_Validation $config.simulate @("NONE", "NVIDIA", "AMD", "INTEL", "CPU"))) {
+		$errosEncontrados += 13
 	}
-	
+
+    # valida: CODEC ------------------------------------------------------------
+	$config.codec = $config.codec.ToUpper().Trim()
+	if (-not (Match_Validation $config.codec @("AVC", "HEVC"))) {
+		$errosEncontrados += 14
+	}
+
+    # valida: HDR --------------------------------------------------------------
+	if (-not (Boolean_Validation $config.hdr)) {
+		$errosEncontrados += 8
+	} else {
+		# Se o HDR for ativado, o único codec aceito no momento é o HEVC
+		$config.hdr = [bool]::Parse($config.hdr)
+		if ($config.hdr -and $config.codec -ne "HEVC") {
+			$errosEncontrados += 15
+		}
+	}
+
+    # valida: DEBUG ------------------------------------------------------------
+	if (-not (Boolean_Validation $config.debug)) {
+		$errosEncontrados += 16
+	}
+	$config.debug = [bool]::Parse($config.debug)
+
+
     # LOOP DE VERIFICAÇÃO DE ERROS
     if ($errosEncontrados.Count -gt 0) {
         foreach ($id in $errosEncontrados) {
@@ -272,6 +256,28 @@ function Get-ScriptConfig {
         exit
     }
 	
+	#debug
+	if ($config.debug -eq $true) {
+		Write-Host "`n[ parameters ] $($config) `n" -ForegroundColor Yellow
+	}
+
     return $config
 
 }
+
+# Valida se é booleano
+function Boolean_Validation($value) {
+	$str = $value.ToString().ToLower().Trim()
+	if (-not (Match_Validation $str @("true", "false"))) {
+		return $false
+	}
+
+	return $true
+	
+}
+
+# Valida se existe na lista
+function Match_Validation($value, [array]$list) {
+    return $Value -in $list
+}
+

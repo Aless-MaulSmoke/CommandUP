@@ -82,7 +82,7 @@ function Out-GlobalSummary {
  	Write-Host "     \______  /\____/|__|_|  /__|_|  (____  /___|  /\____ |  |______/  |____|       " -ForegroundColor White
 	Write-Host "            \/             \/      \/     \/     \/      \/                         " -ForegroundColor White
 	Write-Host "                                                                                    "
-	Write-Host "        [ Author  : Aless(MaulSmoke) | Community: YT/toPlayAless ]     cup v1.0.2   " -ForegroundColor Gray
+	Write-Host "        [ Author  : Aless(MaulSmoke) | Community: YT/toPlayAless ]    cup v1.0.3    " -ForegroundColor Gray
 	Write-Host "------------------------------------------------------------------------------------" -ForegroundColor DarkGray
 	Write-Host "  Quality: $($Config.quality.ToUpper())  Resolution: $($InfoBanner.widthOut)x$($InfoBanner.heightOut)  Sharpness: $($Config.sharpness)  FPS: $($InfoBanner.fpsOut)  Interp: $($Config.interpolate)" -ForegroundColor White
 	Write-Host "====================================================================================" -ForegroundColor Cyan

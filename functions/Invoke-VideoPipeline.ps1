@@ -31,13 +31,14 @@ function Invoke-VideoPipeline {
     }
 	
     # Resgate de Variáveis Locais
+	$format        = $Config.format
     $scale         = $Config.scale
     $fps           = $Config.fps
     $quality       = $Config.quality
     $sharpness     = $Config.sharpness
 	$codec         = $Config.codec
 	$hdr           = $Config.hdr
-	$hud_port      = $Config.hud_port
+	$port          = $Config.port
 	$gpu_id        = $Config.gpu_id
     $shaderFFmpeg  = $Pipeline.shaderFFmpeg
 	$gpuName       = $Pipeline.gpuName
@@ -48,8 +49,10 @@ function Invoke-VideoPipeline {
     $widthOut      = $Metadata.widthOut
     $heightOut     = $Metadata.heightOut
     $inPix         = $Metadata.pixFormat
-    $inSpace       = $Metadata.colorSpace
     $inRange       = $Metadata.colorRange
+    $inSpace       = $Metadata.colorSpace
+	$inPrimaries   = $Metadata.colorPrimaries
+	$inTrc         = $Metadata.colorTransfer
 	$bitsFormat    = $Metadata.bitsFormat
 	$bitsOutput    = $Metadata.bitsOutput
 	$bitsDowngrade = $Metadata.bitsDowngrade
@@ -111,21 +114,22 @@ function Invoke-VideoPipeline {
     if (-not $Metadata.skipFSR) {
         $sufixo += "_FSR_${widthOut}x${heightOut}"
 		if ($null -ne $sharpness) { $sufixo += "_SHARPNESS_$sharpness" }
-		if ($hdr -eq $true -or $hdr -eq "true") { $sufixo += "_HDR" }
+		if ($hdr -eq $true) { $sufixo += "_HDR" }
     }
     # IFS ativo
     if (-not $Metadata.skipIFS) {
-        $vfString += ":fps=${fps}:frame_mixer=$($pipeline.interpolate)"
-        $sufixo += "_IFS_${fps}fps$($pipeline.interpolate.ToUpper())"
+        $vfString += ":fps=${fps}:frame_mixer=$($Config.interpolate)"
+        $sufixo += "_IFS_${fps}fps$($Config.interpolate.ToUpper())"
     }
 
     # string final do parametro filters para libplacebo
-	$vfString += ":colorspace=${inSpace}:color_primaries=${inSpace}:color_trc=${inSpace}:range=${inRange}:custom_shader_path='${shaderFFmpeg}',hwdownload,${formatFix}format=${inPix}"
+	$vfString += ":colorspace=${inSpace}:color_primaries=${inPrimaries}:color_trc=${inTrc}:range=${inRange}:custom_shader_path='${shaderFFmpeg}',hwdownload,${formatFix}format=${inPix}"
 
-    # Definição do Arquivo de Saída Sufixos no nome
+    # Definição do Arquivo de Saída usando parametro format
     $pastaSaida = [System.IO.Path]::GetDirectoryName($VideoPath)
     $extensaoOriginal = [System.IO.Path]::GetExtension($VideoPath)
-    $videoSaida = "${nomeSemExtensao}${sufixo}${extensaoOriginal}"
+	$extensaoParametro = ".$format"
+    $videoSaida = "${nomeSemExtensao}${sufixo}${extensaoParametro}"
 
     # Preparação das variáveis exatas da assinatura de comando
     $ffmpeg      = $Pipeline.ffmpeg
@@ -149,7 +153,7 @@ function Invoke-VideoPipeline {
 		OutputFile      = $outFile
 		LogPath         = $logIndividual
 		TempoDecorrido  = [TimeSpan]::Zero
-		DuracaoVideo    = $Metadata.duracaoSegundos
+		DuracaoVideo    = $Metadata.duracaoSecs
 		widthOut        = $widthOut
 		heightOut       = $heightOut
 		fpsOut          = $Metadata.fpsOut
@@ -168,7 +172,7 @@ function Invoke-VideoPipeline {
     try {
 		
 		# Inicializa a escuta TCP
-		$listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, $hud_port)
+		$listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, $port)
 		$listener.Start()
 
 		[System.Threading.Thread]::Sleep(50)
@@ -180,11 +184,14 @@ function Invoke-VideoPipeline {
 			if ($vArgsTextoLimpo) { $vArgsTextoLimpo += " " }
 		}
 		
+		# Ajusta audio e legendas dependendo do formato
+		$formatosArgs = @{"mp4" = "-c:a copy -y "; "mkv" = "-c:a copy -c:s copy -y " }
+
 		# Seta a tag correta: avc1 para AVC (H.264) ou hvc1 para HEVC (H.265)
-		$vTag = if ($codec -eq "avc") { "avc1" } else { "hvc1" }
+		$codecArgs = @{"avc" = "avc1 "; "hevc" = "hvc1 " }
 
 		# Monta a string do FFmpeg
-		$argumentosString = '-nostats -progress "tcp://127.0.0.1:' + $hud_port + '" ' +
+		$argumentosString = '-nostats -progress "tcp://127.0.0.1:' + $port + '" ' +
 							'-init_hw_device vulkan=vk:' + $gpu_id + $gpuVulkanArgs + ' -filter_hw_device vk ' +
 							$vArgsTextoLimpo +
 							'-i "' + $file + '" ' +
@@ -192,10 +199,10 @@ function Invoke-VideoPipeline {
 							'-fps_mode passthrough ' +
 							'-c:v ' + $Global:SelectedCodec + ' ' +
 							($Global:CodecArgs -join ' ') + ' ' +
-							'-tag:v ' + $vTag + ' -c:a copy -y "' + $outFile + '"'
+							'-tag:v ' + $codecArgs[$codec] + $formatosArgs[$format] + '"' + $outFile + '"'
 
 		#debug
-		if ($Config.debug -eq $true -or $Config.debug -eq "true") {
+		if ($Config.debug -eq $true) {
 			Write-Host "`n[ argumentosString ] $argumentosString `n" -ForegroundColor Yellow
 		}
 
@@ -239,17 +246,20 @@ function Invoke-VideoPipeline {
 "@
 				Write-Host $layoutEstatico
 				
-				$ponteiros = @("-", "\", "|", "/")
-				$ponteiroPos = 0
+				$animacao = @("-", "\", "|", "/")
+				$animacaoPos = 0
 				$porcentagem = 0
 				$larguraBarra = 25
 				$tempoAtualStr = "00:00:00"
 				$restanteStr = "00:00:00"
 
+				Write-Host "  Loading...  "  -ForegroundColor Yellow
+				Write-Host "`n`n`n`n"
+				
 				# Captura a posição do cursor após os dados estáticos. 
 				$posicaoOriginalCursor = $Host.UI.RawUI.CursorPosition
-				
-				Write-Host "  Loading...  "  -ForegroundColor Yellow
+				$posicaoOriginalCursor.Y = $posicaoOriginalCursor.Y - 6
+				$posicaoOriginalCursor.X = 0
 
 				# LOOP DE PROCESSAMENTO DO HUD
 				while (-not $processo.HasExited -or $stream.DataAvailable) {
@@ -261,7 +271,7 @@ function Invoke-VideoPipeline {
 							# Finaliza o FFmpeg imediatamente
 							$processo | Stop-Process -Force -ErrorAction SilentlyContinue
 
-							#  Fecha cirurgicamente os sockets para liberar a porta $hud_port
+							#  Fecha cirurgicamente os sockets para liberar a porta $port
 							if ($null -ne $leitor) { $leitor.Close(); $leitor.Dispose() }
 							if ($null -ne $clienteSocket) { $clienteSocket.Close(); $clienteSocket.Dispose() }
 							if ($null -ne $listener) { $listener.Stop() }
@@ -289,36 +299,42 @@ function Invoke-VideoPipeline {
 						
 						if ($linha -match "out_time_ms=(\d+)") { 
 							$outTimeMs = [double]$Matches[1] 
-						}
-						elseif ($linha -match "speed=\s*([\d\.]+)x") { 
+						} elseif ($linha -match "speed=\s*([\d\.]+)x") { 
 							$velocidade = [double]$Matches[1] 
-						}
-						elseif ($linha -match "fps=\s*([\d\.]+)") { 
+						} elseif ($linha -match "fps=\s*([\d\.]+)") { 
 							$velocidadeFps = [double]$Matches[1] 
-						}
-						elseif ($linha -match "progress=(.*)") {
-							
-							# Lógica de cálculo matemático do progresso
-							$tempoTotalMs = $Metadata.duracaoSegundos * 1000000
-							if ($tempoTotalMs -gt 0) {
-								$porcentagem = [int][math]::Min(100, [math]::Round(($outTimeMs / $tempoTotalMs) * 100, 0))
-							}                    
-							if ($outTimeMs -gt 0) {
-								# Converte microssegundos do FFmpeg para segundos e depois para TimeSpan
-								$tsAtual = [TimeSpan]::FromSeconds($outTimeMs / 1000000)
-								$tempoAtualStr = "{0:d2}:{1:d2}:{2:d2}" -f [int][math]::Truncate($tsAtual.TotalHours), $tsAtual.Minutes, $tsAtual.Seconds
-							}
-							if ($velocidade -gt 0 -and $outTimeMs -lt $tempoTotalMs) {
-								$milisegundosRestantes = ($tempoTotalMs - $outTimeMs) / $velocidade
-								if ($milisegundosRestantes -gt 0) {
-									$tsEta = [TimeSpan]::FromMilliseconds($milisegundosRestantes / 1000)
-									$restanteStr = "{0:d2}:{1:d2}:{2:d2}" -f [int][math]::Truncate($tsEta.TotalHours), $tsEta.Minutes, $tsEta.Seconds
+						} elseif ($linha -match "progress=(.*)") {
+							$statusProgresso = $Matches[1].Trim()
+
+							# Calcula a matemática apenas se o processo estiver rodando
+							if ($statusProgresso -eq "continue") {
+								
+								$tempoTotalMs = $Metadata.duracaoSecs * 1000000
+								if ($tempoTotalMs -gt 0) {
+									$porcentagem = [int][math]::Min(100, [math]::Round(($outTimeMs / $tempoTotalMs) * 100, 0))
+								}                    
+								if ($outTimeMs -gt 0) {
+									$tsAtual = [TimeSpan]::FromSeconds($outTimeMs / 1000000)
+									$tempoAtualStr = "{0:d2}:{1:d2}:{2:d2}" -f [int][math]::Truncate($tsAtual.TotalHours), $tsAtual.Minutes, $tsAtual.Seconds
 								}
+								if ($velocidade -gt 0 -and $outTimeMs -lt $tempoTotalMs) {
+									$milisegundosRestantes = ($tempoTotalMs - $outTimeMs) / $velocidade
+									if ($milisegundosRestantes -gt 0) {
+										$tsEta = [TimeSpan]::FromMilliseconds($milisegundosRestantes / 1000)
+										$restanteStr = "{0:d2}:{1:d2}:{2:d2}" -f [int][math]::Truncate($tsEta.TotalHours), $tsEta.Minutes, $tsEta.Seconds
+									}
+								}
+								
+							} elseif ($statusProgresso -eq "end") {
+								# Se for o fim, crava os valores de sucesso e para o cálculo
+								$porcentagem = 100
+								$restanteStr = "00:00:00"
 							}
+
 							$tsDecorrido = $cronometro.Elapsed
 							$decorridoStr = "{0:d2}:{1:d2}:{2:d2}" -f [int][math]::Truncate($tsDecorrido.TotalHours), $tsDecorrido.Minutes, $tsDecorrido.Seconds
 
-							
+							# O restante do seu bloco de montagem da barra visual e Write-Host continua igual...
 							# Montagem da Barra Visual
 							$preenchido = [int][math]::Round(($porcentagem / 100) * $larguraBarra)
 							$vazio = $larguraBarra - $preenchido
@@ -328,12 +344,12 @@ function Invoke-VideoPipeline {
 							$layoutDinamico = @"
   [Done     ]: $($tempoAtualStr)
   [Progress ]: [$barraVisual] $porcentagem% 
-  [Speed    ]: $($velocidade.ToString('0.00'))x  $($ponteiros[$ponteiroPos])  $($velocidadeFps)fps     
+  [Speed    ]: $($velocidade.ToString('0.00'))x  $($animacao[$animacaoPos])  $($velocidadeFps)fps     
   [Elapsed  ]: $decorridoStr 
   [Left     ]: $restanteStr   
 "@
 							# Incrementa a animação do ponteiro
-							$ponteiroPos = ($ponteiroPos + 1) % $ponteiros.Count
+							$animacaoPos = ($animacaoPos + 1) % $animacao.Count
 							
 							# Reposiciona o cursor no ponto fixo e atualiza apenas as 3 linhas finais
 							$Host.UI.RawUI.CursorPosition = $posicaoOriginalCursor
@@ -341,6 +357,9 @@ function Invoke-VideoPipeline {
 						}
 					}
 				}
+				
+				# Exibe novamente o cursor do terminal
+				[Console]::CursorVisible = $true
 				
 				if ($porcentagem -ne 0) {
 					$barraVisualFinal = "■" * 25
@@ -358,12 +377,9 @@ function Invoke-VideoPipeline {
 					Throw "Critical error in video encoding!"
 				}
 
-				# Exibe novamente o cursor do terminal
-				[Console]::CursorVisible = $true
-				
 			} else {
 				# Se o timeout estourou ou o processo morreu antes de conectar
-				Throw  "Impossible to connect to the HUD socket: $($hud_port)."
+				Throw  "Impossible to connect to the HUD socket: $($port)."
 			}
 		} catch {
 			Throw $_.Exception.Message 
@@ -386,8 +402,8 @@ function Invoke-VideoPipeline {
             $Resultado.Success = $true
             
             # Velocidade em linha única: Duração / Segundos Decorridos
-            if ($cronometro.Elapsed.TotalSeconds -gt 0 -and $Metadata.duracaoSegundos -gt 0) {
-                $Resultado.Speed = $Metadata.duracaoSegundos / $cronometro.Elapsed.TotalSeconds
+            if ($cronometro.Elapsed.TotalSeconds -gt 0 -and $Metadata.duracaoSecs -gt 0) {
+                $Resultado.Speed = $Metadata.duracaoSecs / $cronometro.Elapsed.TotalSeconds
             }
 
             # Busca o Bitrate de forma direta varrendo as últimas linhas do Log

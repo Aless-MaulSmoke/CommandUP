@@ -182,6 +182,7 @@
 
     <p>You can configure the process by editing the file <code>DRAG_CONFIG.txt</code>:</p>
     <pre><code>[DRAG SETTINGS]
+FORMAT=mp4
 QUALITY=med
 FPS=60
 INTERPOLATE=oversample
@@ -210,17 +211,17 @@ SHUTDOWN=false</code></pre>
     <ul>
         <li><code>-file "path_to_file"</code>: The full path of the video file you want to process. It must be enclosed in quotes. Supported formats: mp4 and mkv.</li>
         <li><code>-folder "path_to_folder"</code>: The full path of the folder containing videos that you want to batch process. It must be enclosed in quotes.</li>
-        <li><code>-scale factor|resolution</code>: Final video dimension. If omitted, upscaling does not happen and the original size is maintained. The value can be provided in the following formats:
+		<li><code>-format "mp4|mkv"</code>: Selects the final video file format. The available options are:
+			<ul>
+				<li><code>mp4</code>: Focuses on maximum compatibility. Preserves only the main audio track and completely removes embedded subtitles.</li>
+				<li><code>mkv</code>: Designed for composite media. Preserves multiple audio tracks and embedded subtitles.</li>
+			</ul>
+		</li>
+        <li><code>-quality "low|med|big"</code>: The weight profile, compression, and final file size. If you omit this parameter, the system will automatically assume the balanced profile <code>"med"</code>. The available options are:
             <ul>
-                <li>Multiplier factor for resolution gain. Use decimal numbers (e.g., the scaling factor for a 720p video to 1080p is <code>1.5</code>).</li>
-                <li>Literal resolution scale where you can inform, for example:
-                    <ul>
-                        <li><code>"1280x720"</code> = 720p (HD)</li>
-                        <li><code>"1920x1080"</code> = 1080p (Full HD)</li>
-                        <li><code>"2560x1440"</code> = 2K (Quad HD / QHD)</li>
-                        <li><code>"3840x2160"</code> = 4K (Ultra HD / UHD)</li>
-                    </ul>
-                </li>
+                <li><code>low</code>: Focuses on drastic space savings. Reduces the final file weight and relieves VRAM usage. Generates a small final file.</li>
+                <li><code>med</code>: The ideal balance point. Maintains edge sharpness and visual fidelity without blowing up the hard drive space. Generates a medium-sized final file.</li>
+                <li><code>big</code>: Maximum visual fidelity and high bitrate, aimed at archiving or high-quality uploads. Generates a huge final file.</li>
             </ul>
         </li>
         <li><code>-fps number</code>: The desired frame rate for smoothness (e.g., 60). If omitted, frame generation does not happen and the original FPS is maintained.</li>
@@ -232,11 +233,17 @@ SHUTDOWN=false</code></pre>
                 <li><code>linear</code>: Applies a smart linear overlap blend/transition between frames. Extremely lightweight processing, ideal for a smooth pace on older hardware configurations.</li>
             </ul>
         </li>
-        <li><code>-quality "low|med|big"</code>: The weight profile, compression, and final file size. If you omit this parameter, the system will automatically assume the balanced profile <code>"med"</code>. The available options are:
+        <li><code>-scale factor|resolution</code>: Final video dimension. If omitted, upscaling does not happen and the original size is maintained. The value can be provided in the following formats:
             <ul>
-                <li><code>low</code>: Focuses on drastic space savings. Reduces the final file weight and relieves VRAM usage. Generates a small final file.</li>
-                <li><code>med</code>: The ideal balance point. Maintains edge sharpness and visual fidelity without blowing up the hard drive space. Generates a medium-sized final file.</li>
-                <li><code>big</code>: Maximum visual fidelity and high bitrate, aimed at archiving or high-quality uploads. Generates a huge final file.</li>
+                <li>Multiplier factor for resolution gain. Use decimal numbers (e.g., the scaling factor for a 720p video to 1080p is <code>1.5</code>).</li>
+                <li>Literal resolution scale where you can inform, for example:
+                    <ul>
+                        <li><code>"1280x720"</code> = 720p (HD)</li>
+                        <li><code>"1920x1080"</code> = 1080p (Full HD)</li>
+                        <li><code>"2560x1440"</code> = 2K (Quad HD / QHD)</li>
+                        <li><code>"3840x2160"</code> = 4K (Ultra HD / UHD)</li>
+                    </ul>
+                </li>
             </ul>
         </li>
         <li><code>-sharpness number</code>: Sharpness applied by FSR ranging from <code>0</code> (minimum) to <code>10</code> (maximum).</li>
@@ -286,9 +293,18 @@ SHUTDOWN=false</code></pre>
     </ul>
 
     <h3>CUP Pipeline configuration</h3>
-	<p>CommandUP has a configuration file at the root of the pipeline named <code>config.ini</code>. In this file, we can configure certain execution parameters:</p>
+	<p>CommandUP has a configuration file at the root of the pipeline called config.ini. In this file, we can edit settings for some execution parameters:</p>
+    <pre><code>[CUP SETTINGS]
+PORT=50548
+VERBOSE=false
+GPU_ID=0
+SIMULATION=none
+DEBUG=false
+</code></pre>
+
+    <p>If necessary, you can configure the <code>cup.ps1</code> script using parameters directly in the console: <code>-port number</code>, <code>-verbose</code>, <code>-gpu_id number</code>, <code>-simulate "string"</code>, and <code>-debug</code>.</p>
 	<ul>
-		<li><code>HUD_PORT number</code>: TCP port used for CommandUP communication with FFmpeg for HUD data. Default is 4867.</li>
+		<li><code>PORT number</code>: TCP port used for CommandUP communication with FFmpeg for HUD data. Default is 50548.</li>
 		<li><code>VERBOSE "false|true"</code>: Defines the level of detail when writing to the log file.
 			<ul>
 				<li><code>false</code>: Disables detailed writing, recording simple information in the log.</li>
@@ -296,13 +312,20 @@ SHUTDOWN=false</code></pre>
 			</ul>
 		</li>
 		<li><code>GPU_ID number</code>: If you have more than one video card, specify which one you want to use via the video card ID number. Usually 0 for the first vCard, 1 for the second.</li>
+        <li><code>SIMULATE "none|cpu|nvidia|amd|intel"</code>: Try simulating other cards. Use "cpu" to force encoding via the processor. For "Nvidia, AMD, and Intel," a properly configured Vulkan SDK is required.
+            <ul>
+                <li><code>none</code>: System default using your GPU.</li>
+                <li><code>cpu</code>: This forces CPU-only encoding; try using it if you run into issues with your graphics card lacking an encoder.</li>
+                <li><code>nvidia | amd | intel</code>: Try simulating one of these brands using a properly configured VulkanSDK.</li>
+            </ul>
+		</li>
+        <li><code>DEBUG "false|true"</code>: Displays technical information on the HUD for debugging.
+            <ul>
+                <li><code>false</code>: Disables Debug, normal HUD.</li>
+                <li><code>true</code>: Enables Debug mode and a HUD with technical information.</li>
+            </ul>
+		</li>
 	</ul>
-    <p>If needed, you can configure the <code>cup.ps1</code> script using parameters directly in the console: <code>-hud_port number</code>, <code>-verbose</code> AND <code>-gpu_id number</code>, or if you prefer, by editing the <code>config.ini</code> file:</p>
-    <pre><code>[CUP SETTINGS]
-HUD_PORT=4867
-VERBOSE=false
-GPU_ID=0
-</code></pre>
 
     <h3>2. <code>extract.ps1</code></h3>
     <p>Script to extract some frames from the processed video so you can evaluate frame-by-frame if the result is good. You can extract all frames of x seconds starting at a specific video timestamp. It is the ideal tool for you to visually evaluate the final quality, allowing a frame-by-frame check.</p>

@@ -23,77 +23,99 @@ param (
 
     # Extração de Metadados via FFprobe
 	$ffprobeArgs = @(
-		"-v", 
-		"error",
-		"-select_streams", 
-		"v:0",
-		"-show_entries", 
-		"stream=width,height,r_frame_rate,pix_fmt,color_space,color_range:format=duration",
-		"-of", 
-		"csv=p=0",
+		"-v", "error",
+		"-select_streams", "v:0",
+		'-show_entries', 'stream=width,height,r_frame_rate,pix_fmt,color_range,color_space,color_primaries,color_transfer:format=duration',
+		'-of', 'csv=p=0',
 		$VideoPath
 	)
-	
+
 	[int]$bitsOutput = 0
 	[bool]$bitsDowngrade = $false
 
 	try {
 		$probeOutput = & $Pipeline.ffprobe $ffprobeArgs 2>$null
+
 		if ($null -eq $probeOutput -or $probeOutput.Trim() -eq "") {
 			throw "Could not read the video properties."
 		}
 
 		# Substitui quebras de linha por vírgulas e remove espaços, criando uma linha única limpa
-		$textoUnificado = $probeOutput.Trim() -replace "`r", "" -replace "`n", ","
+		$textoLimpo = $probeOutput.Trim().TrimEnd(',')
 		
 		# Transforma em um Array Real de elementos separados (Força a tipagem de lista do PowerShell)
-		[string[]]$partesValidas = $textoUnificado -split ','
+		$partesValidas = $textoLimpo -split ','
 
-		# Mapeamento matemático direto pelos índices reais da lista:
-		$wOriginal   = [int]$partesValidas[0]
-		$hOriginal   = [int]$partesValidas[1]
-		$pixFormat   = [string]$partesValidas[2]
-		$colorRange  = [string]$partesValidas[3]
-		$colorSpace  = [string]$partesValidas[4]
-		$fpsRaw      = [string]$partesValidas[5]
-		$duracaoSegundos = [double]$partesValidas[6]
-		$fpsParts    = $fpsRaw -split '/'
-		$fpsOriginal = [math]::Round(([double]$fpsParts[0] / [double]$fpsParts[1]), 2)
+		try {
+			# Mapeamento pelos índices reais e exatos da lista:
+			$wOriginal      = [int]$partesValidas[0]
+			$hOriginal      = [int]$partesValidas[1]
+			$pixFormat      = [string]$partesValidas[2]
+			$colorRange     = [string]$partesValidas[3]
+			$colorSpace     = [string]$partesValidas[4]
+			$colorTransfer  = [string]$partesValidas[5]
+			$colorPrimaries = [string]$partesValidas[6]
+			$fpsRaw         = [string]$partesValidas[7]
+			$duracaoSecs    = [double]$partesValidas[8]
+			
+		} catch {
+			throw "The video's metadata is corrupted. Can't do the process."
+		}
+		
+		$fpsOriginal = 0.0
+		if ($fpsRaw -like '*/*') {
+			$fpsParts = $fpsRaw -split '/'
+			if ([double]$fpsParts[1] -ne 0) {
+				$fpsOriginal = [math]::Round(([double]$fpsParts[0] / [double]$fpsParts[1]), 2)
+			}
+		}
 
 		if ($colorRange -eq "tv") { $colorRange = "limited" }
 		if ($colorRange -eq "pc") { $colorRange = "full" }
+		
+		# Define se é HDR
+		if ($colorSpace -like "bt2020*" -and $colorTransfer -eq "smpte2084") { $isHDR = $true } else { $isHDR = $false }
 
+		# Define profundidade de bits
 		if ($tabelaFormatos.ContainsKey($pixFormat)) {
 			[int]$bitsFormat = $tabelaFormatos[$pixFormat]
 		} else {
 			throw "Error: The video format '$pixFormat' is not certified or supported."
 		}
-		
-		# Herda profundidade de bits do video original
 		[int]$bitsOutput = $bitsFormat
 		[bool]$bitsDowngrade = $false
 
 		# Bloqueio Crítico caso tente gerar HDR com video de origem que não seja 10bits
-		if (($Config.HDR -eq $true -or $Config.HDR -eq "true") -and ($bitsFormat -ne 10 -or $Config.codec.ToLower() -ne "hevc")) {
-			return [PSCustomObject]@{
-				Success     = $false
-				SkipVideo   = $true
-				Reason      = "Critical Error: HDR mode strictly requires a 10-bit HEVC source video."
-				NomeArquivo = [System.IO.Path]::GetFileName($VideoPath)
-			}
+		if (($Config.hdr -eq $true) -and ($isHDR -eq $false ) -and ($bitsFormat -ne 10 -and $Config.codec.ToLower() -ne "hevc")) {
+			throw "HDR mode strictly requires a 10-bit HEVC HDR source video."
+		}
+
+		# Bloqueio Crítico caso ative parametro hdr e o video de origem não é hdr
+		if (($Config.hdr -eq $true) -and ($isHDR -eq $false )) {
+			throw "The HDR parameter is set to True, but the source video isn't HDR."
+		}
+
+		# Bloqueio Crítico caso parametro hdr desativado e o video de origem é hdr
+		if (($Config.hdr -eq $false) -and ($isHDR -eq $true)) {
+			throw "The HDR parameter is set to False, but the source video is HDR."
 		}
 
 		# Força downgrade para 8bits se hevc não tiver suporte a 10bits na vcard
-		if ($bitsFormat -eq 10 -and $Config.codec.ToLower() -eq "hevc" -and $Pipeline.codec10BitsSupp -eq $false) {
+		if ($bitsFormat -eq 10 -and $Pipeline.codec10BitsSupp -eq $false -and $Config.simulate -ne "cpu") {
 			$bitsOutput = 8
 			$bitsDowngrade = $true
 		}
 		
+		# Bloqueio Crítico caso tente gerar HDR com vcard que não suporte 10bits
+		if (($isHDR -eq $true ) -and ($bitsDowngrade -eq $true)) {
+			throw "HDR video requires 10-bit encoding. Your GPU doesn't support it. Try simulate=cpu"
+		}
+
 	} catch {
         return [PSCustomObject]@{
             Success = $false
             SkipVideo = $true
-            Reason = "Failed to extract metadata via FFprobe. File is corrupted or incompatible."
+            Reason = $_.Exception.Message
             NomeArquivo = [System.IO.Path]::GetFileName($VideoPath)
         }
     }
@@ -138,7 +160,7 @@ param (
         }
     }
 	
-    return [PSCustomObject]@{
+    $Metadata = [PSCustomObject]@{
 		Success         = $true
 		SkipVideo       = $false
 		NomeArquivo     = $nomeArquivo
@@ -148,15 +170,25 @@ param (
 		bitsFormat      = $bitsFormat
 		bitsOutput      = $bitsOutput
 		bitsDowngrade   = $bitsDowngrade
-		colorSpace      = $colorSpace
 		colorRange      = $colorRange
+		colorSpace      = $colorSpace
+		colorPrimaries  = $colorPrimaries
+		colorTransfer   = $colorTransfer
+		isHDR           = $isHDR
 		fpsOriginal     = $fpsOriginal
 		widthOut        = $widthOut
 		heightOut       = $heightOut
 		fpsOut          = $fpsOut
-		duracaoSegundos = $duracaoSegundos 
+		duracaoSecs     = $duracaoSecs 
 		skipFSR         = $isResolutionRedundant
 		skipIFS         = $isFpsRedundant
     }
+
+	#debug
+	if ($Config.debug -eq $true) {
+		Write-Host "`n[ Metadata ] $Metadata `n" -ForegroundColor Yellow
+	}
 	
+	return $Metadata
+
 }

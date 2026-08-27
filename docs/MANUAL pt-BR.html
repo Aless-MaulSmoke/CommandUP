@@ -182,6 +182,7 @@
     </ol>
     <p>Você pode configurar o processo editando o arquivo <code>DRAG_CONFIG.txt</code>:</p>
     <pre><code>[DRAG_SETTINGS]
+FORMAT=mp4
 QUALITY=med
 FPS=60
 INTERPOLATE=oversample
@@ -207,17 +208,17 @@ SHUTDOWN=false
     <ul>
         <li><code>-file "caminho_nome_do_arquivo"</code>: O caminho completo do arquivo de vídeo que você deseja processar. Deve ser colocado entre aspas. Formatos suportados: mp4 e mkv.</li>
         <li><code>-folder "caminho_nome_da_pasta"</code>: O caminho completo da pasta com vídeos que você deseja processar em lote. Deve ser colocado entre aspas.</li>
-        <li><code>-scale fator|resolução</code>: Dimensão final do vídeo. Se omitido, o upscale não acontece e o tamanho original é mantido. O valor pode ser informado nos formatos:
+        <li><code>-format "mp4|mkv"</code>: Seleciona o formato final de arquivo de vídeo. As opções disponíveis são:
             <ul>
-                <li>fator multiplicador para o ganho de resolução. Use números decimais (ex: o fator de dimensão de um vídeo de 720p para 1080p é <code>1.5</code>).</li>
-				<li>resolução literal onde vc pode informar por exemplo:
-					<ul>
-						<li><code>"1280x720"</code>  = 720p (HD)</li>
-						<li><code>"1920x1080"</code> = 1080p (Full HD)</li>
-						<li><code>"2560x1440"</code> = 2K (Quad HD / QHD)</li>
-						<li><code>"3840x2160"</code> = 4K (Ultra HD / UHD)</li>
-					</ul>
-				</li>
+                <li><code>mp4</code>: Foca na compatibilidade máxima. Preserva apenas a faixa de áudio principal e remove completamente as legendas embutidas.</li>
+                <li><code>mkv</code>: Desenvolvido para mídias compostas. Preserva múltiplas faixas de áudio e legendas embutidas.</li>
+            </ul>
+        </li>
+        <li><code>-quality "low|med|big"</code>: O perfil de peso, compressão e tamanho do arquivo final. Se você omitir este parâmetro, o sistema assumirá automaticamente o perfil equilibrado <code>"med"</code>. As opções disponíveis são:
+            <ul>
+                <li><code>low</code>: Foco em economia drástica de espaço. Reduz o peso do arquivo final e alivia o uso de VRAM. Gera um arquivo final pequeno.</li>
+                <li><code>med</code>: O ponto de equilíbrio ideal. Mantém a nitidez das bordas e a fidelidade visual sem estourar o HD. Gera um arquivo final de tamanho mediano.</li>
+                <li><code>big</code>: Máxima fidelidade visual e alta taxa de bits, voltado para arquivamento ou upload em alta qualidade. Gera um arquivo final enorme.</li>
             </ul>
         </li>
         <li><code>-fps número</code>: A taxa de quadros desejada para a fluidez (ex: 60). Se omitido, a geração de quadros não acontece e os FPS originais são mantidos.</li>
@@ -229,11 +230,17 @@ SHUTDOWN=false
                 <li><code>linear</code>: Aplica uma mesclagem/transição com sobreposição linear inteligente entre quadros. Processamento extremamente leve, ideal para um ritmo suave em configurações de hardware mais antigas.</li>
             </ul>
         </li>
-        <li><code>-quality "low|med|big"</code>: O perfil de peso, compressão e tamanho do arquivo final. Se você omitir este parâmetro, o sistema assumirá automaticamente o perfil equilibrado <code>"med"</code>. As opções disponíveis são:
+        <li><code>-scale fator|resolução</code>: Dimensão final do vídeo. Se omitido, o upscale não acontece e o tamanho original é mantido. O valor pode ser informado nos formatos:
             <ul>
-                <li><code>low</code>: Foco em economia drástica de espaço. Reduz o peso do arquivo final e alivia o uso de VRAM. Gera um arquivo final pequeno.</li>
-                <li><code>med</code>: O ponto de equilíbrio ideal. Mantém a nitidez das bordas e a fidelidade visual sem estourar o HD. Gera um arquivo final de tamanho mediano.</li>
-                <li><code>big</code>: Máxima fidelidade visual e alta taxa de bits, voltado para arquivamento ou upload em alta qualidade. Gera um arquivo final enorme.</li>
+                <li>fator multiplicador para o ganho de resolução. Use números decimais (ex: o fator de dimensão de um vídeo de 720p para 1080p é <code>1.5</code>).</li>
+				<li>resolução literal onde vc pode informar por exemplo:
+					<ul>
+						<li><code>"1280x720"</code>  = 720p (HD)</li>
+						<li><code>"1920x1080"</code> = 1080p (Full HD)</li>
+						<li><code>"2560x1440"</code> = 2K (Quad HD / QHD)</li>
+						<li><code>"3840x2160"</code> = 4K (Ultra HD / UHD)</li>
+					</ul>
+				</li>
             </ul>
         </li>
         <li><code>-sharpness número</code>: Nitidez aplicada pelo FSR indo de <code>0</code> (mínimo) até <code>10</code> (máximo).</li>
@@ -283,9 +290,17 @@ SHUTDOWN=false
     </ul>
 
     <h3>Configuração da CUP Pipeline</h3>
-	<p>CommandUP possui um arquivo de configuração na raíz da pipeline chamado <code>config.ini</code>. Nesse arquivo podemos configurar alguns parametros de execução:</p>
-    <ul>
-        <li><code>HUD_PORT número</code>: Porta tcp usada para comunicação do CommandUP com o FFmpeg para dados da HUD. Padrão 4867</li>
+	<p>CommandUP possui um arquivo de configuração na raíz da pipeline chamado <code>config.ini</code>. Nesse arquivo podemos editar configurações para alguns parametros de execução:</p>
+    <pre><code>[CUP_SETTINGS]
+PORT=50548
+VERBOSE=false
+GPU_ID=0
+SIMULATE=none
+DEBUG=false
+	</code></pre>
+	<p>Caso exista necessidade, você pode configurar o script <code>cup.ps1</code> usando os parametros diretamente no console: <code>-port número</code>, <code>-verbose</code>, <code>-gpu_id número</code>, <code>-simulate "string"</code> e <code>-debug</code>.</p>
+	<ul>
+        <li><code>PORT número</code>: Porta tcp usada para comunicação do CommandUP com o FFmpeg para dados da HUD. Padrão 50548</li>
         <li><code>VERBOSE "false|true"</code>: Define o nivel de detalhe na escrita do arquivo de log. 
             <ul>
                 <li><code>false</code>: Desativa detalhamento, escrevendo informações simples no log.</li>
@@ -293,13 +308,20 @@ SHUTDOWN=false
             </ul>
 		</li>
         <li><code>GPU_ID número</code>: Se você tiver mais de uma placa de vídeo, especifique qual quer usar pelo número ID da placa. Normalmente 0 para a primeira placa, 1 para a segunda.</li>
+        <li><code>SIMULATE "none|cpu|nvidia|amd|intel"</code>: Tenta simular outras vcards. Use "cpu" para forçar enconde via processador. Para: "nvidia, amd e intel" é necessário a VulkanSDK devidamente configurada. 
+            <ul>
+                <li><code>none</code>: Padrão do sistema usando a sua gpu.</li>
+                <li><code>cpu</code>: Força apenas a codificação via cpu, tente usar quando tiver problemas com falta de encoder na sua vcard.</li>
+                <li><code>nvidia | amd | intel</code>: Tenta simular uma dessas marcas através do VulkanSDK devidamente configurado.</li>
+            </ul>
+		</li>
+        <li><code>DEBUG "false|true"</code>: Exibe informações técnicas na HUD para depuração. 
+            <ul>
+                <li><code>false</code>: Desativa Debug, HUD normal.</li>
+                <li><code>true</code>: Ativa Debug, HUD com informações técnicas.</li>
+            </ul>
+		</li>
     </ul>
-    <p>Caso exista necessidade, você pode configurar o script <code>cup.ps1</code> usando os parametros diretamente no console: <code>-hud_port número</code>, <code>-verbose</code> e <code>-gpu_id número</code>, ou se preferir editando o arquivo <code>config.ini</code>:</p>
-    <pre><code>[CUP_SETTINGS]
-HUD_PORT=4867
-VERBOSE=false
-GPU_ID=0
-	</code></pre>
 
     <h3>2. <code>extract.ps1</code></h3>
     <p>Script para extrair alguns frames do vídeo processado para você poder avaliar via frame se o resultado está bom. Você pode extrair todos os frames de x segundos iniciando em um determinado tempo do vídeo. É a ferramenta ideal para você avaliar visualmente a qualidade do resultado final, permitindo conferir frame por frame.</p>

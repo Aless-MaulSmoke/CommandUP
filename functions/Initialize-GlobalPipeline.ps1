@@ -1,4 +1,4 @@
-﻿ # ==========================================================================
+﻿# ==========================================================================
 # 2. FUNÇÃO DE INICIALIZAÇÃO DO AMBIENTE E SHADER (GLOBAL)
 # ==========================================================================
 function Initialize-GlobalPipeline {
@@ -7,12 +7,15 @@ function Initialize-GlobalPipeline {
     )
 
     # Define os caminhos das ferramentas e estruturas do ambiente
-    $pipeline = [PSCustomObject]@{
+    $paths = [PSCustomObject]@{
 		ffmpeg          = Join-Path $Global:CUP_ROOT "ffmpeg\bin\ffmpeg.exe"
 		ffprobe         = Join-Path $Global:CUP_ROOT "ffmpeg\bin\ffprobe.exe"
 		logpath         = Join-Path $Global:CUP_ROOT "log"
 		shader          = Join-Path $Global:CUP_ROOT "shaders\fsr.glsl"
 		shaderFFmpeg    = ""
+    }
+	
+    $pipeline = [PSCustomObject]@{
 		gpuName         = ""
 		gpuVendor       = ""
 		gpuColorFix     = $false
@@ -22,13 +25,11 @@ function Initialize-GlobalPipeline {
 		qp_i            = 0
 		qp_p            = 0
 		verboseArgs     = @()
-		interpolate     = $Config.interpolate
     }
 	
 	# Define o codec correto e os perfis de qualidade CRF universais
 	$crfProfiles = @{ "LOW" = 24; "MED" = 19; "BIG" = 14 }
-	$qualidadeAlvo = $Config.quality.ToUpper()
-	$pipeline.qp_i = $crfProfiles[$qualidadeAlvo] # Reutilizando a variável qp_i para guardar o QP/CRF base
+	$pipeline.qp_i = $crfProfiles[$Config.quality] # Reutilizando a variável qp_i para guardar o QP/CRF base
 
 	# Dicionário de mapeamento de codecs, perfis e formatos para teste hevc por Fabricante
 	$vendorCodecs = @{
@@ -52,7 +53,7 @@ function Initialize-GlobalPipeline {
 		$pipeline.gpuVendor = $pipeline.gpuName.ToUpper()
 		
 		# Prepara lista de vcards com suas ids aleatórias via ffmpeg
-		$gpuTexto = & $pipeline.ffmpeg -hide_banner -v verbose -init_hw_device vulkan 2>&1 | Out-String
+		$gpuTexto = & $paths.ffmpeg -hide_banner -v verbose -init_hw_device vulkan 2>&1 | Out-String
 		$gpuBloco = if ($gpuTexto -match '(?ms)GPU listing:(?<bloco>.*?)Device') { $Matches['bloco'] }
 		$vulkanListing = [regex]::Matches($gpuBloco, '(?m)^\s*\[Vulkan\s+@\s+\w+\]\s+(?<id>\d+):\s+(?<name>.+?)(?=\s\()') | ForEach-Object { [PSCustomObject]@{ ID = $_.Groups['id'].Value; Name = $_.Groups['name'].Value.Trim() } }
 		
@@ -61,49 +62,46 @@ function Initialize-GlobalPipeline {
 		$Config.gpu_id = [int]$vcardAlvo.ID
 
 		#debug
-		if ($Config.debug -eq $true -or $Config.debug -eq "true") {
+		if ($Config.debug -eq $true) {
 			Write-Host "[ randon gpu list with randon id ] $($vulkanListing | Format-Table | Out-String) `n" -ForegroundColor Yellow
 			Write-Host "[ Selected: ] $($vcardAlvo) `n" -ForegroundColor Yellow
 		}
 		
-		# Seleciona a gpu caso seja simulada
-		if ($Config.simulate_gpu -ne "NONE" -and $Config.simulate_gpu -ne "") {
-			$pipeline.gpuName = $pipeline.gpuName + " |Simulated $($Config.simulate_gpu) Card"
-			$pipeline.gpuVendor = $Config.simulate_gpu
-		}
-	
 	} catch {
-		Write-Warning "gpu_id: $($Config.gpu_id) don't exists. Please update parameter to accept value."
+		Write-Warning "Parameter GPU_ID: $($Config.gpu_id) don't exists. Please update to accept value."
 		exit
     }
 
+	# Setagem de gpu por fabricante
 	if ($pipeline.gpuVendor -match "AMD" -or $pipeline.gpuVendor -match "RADEON") {
 		if ($pipeline.gpuVendor -match "Vega") { $pipeline.gpuColorFix = $true }
 		$pipeline.gpuVendor = "AMD"
-	} 
-	elseif ($pipeline.gpuVendor -match "NVIDIA" -or $pipeline.gpuVendor -match "GEFORCE") {
+	} elseif ($pipeline.gpuVendor -match "NVIDIA" -or $pipeline.gpuVendor -match "GEFORCE") {
 		$pipeline.gpuVendor = "NVIDIA"
 		$pipeline.gpuVulkanArgs = ",disable_multiplane=1"
-	} 
-	elseif ($pipeline.gpuVendor -match "INTEL") {
+	} elseif ($pipeline.gpuVendor -match "INTEL") {
 		$pipeline.gpuVendor = "INTEL"
-	} 
-	else {
-		# Em ultimo caso H.264 rodando diretamente na CPU
+	} else {
 		$pipeline.gpuVendor = "CPU"
+	}
+	
+	# Seleciona a gpu caso seja simulada
+	if ($Config.simulate -ne "NONE" -and $Config.simulate -ne "") {
+		$pipeline.gpuName = $pipeline.gpuName + " |Simulated $($Config.simulate) Card"
+		$pipeline.gpuVendor = $Config.simulate
 	}
 	
 	# Verifica a existencia de encoders na vcard
 	if ($pipeline.gpuVendor -ne "CPU") {
-		$codecAlvo = $vendorCodecs[$pipeline.gpuVendor][$Config.codec]
+		$codecAlvo = $vendorCodecs[$pipeline.gpuVendor][$Config.codec.ToUpper()]
 
 		# Realiza teste fisico para comprovar suporte
-		if (Test-Path $pipeline.ffmpeg) {
+		if (Test-Path $paths.ffmpeg) {
 			
 			# Testa 8bits
 			$probe8Bits = "yuv420p"
-			$args8 = @("-f", "lavfi", "-i", "nullsrc=s=1280x720:d=1", "-c:v", $codecAlvo, "-gpu", $Config.gpu_id, "-pix_fmt", $probe8Bits, "-f", "null", "-")
-			$res8  = & $pipeline.ffmpeg -hide_banner $args8 2>&1 | Out-String
+			$args8 = @("-init_hw_device", "vulkan=vk:$($Config.gpu_id)", "-f", "lavfi", "-i", "nullsrc=s=1280x720:d=1", "-c:v", $codecAlvo, "-pix_fmt", $probe8Bits, "-f", "null", "-")
+			$res8  = & $paths.ffmpeg -hide_banner $args8 2>&1 | Out-String
 
 			if ($res8 -notmatch "Error while opening encoder" -and $res8 -notmatch "not supported") {
 				$pipeline.codec8BitsSupp = $true
@@ -113,8 +111,8 @@ function Initialize-GlobalPipeline {
 
 				# Testa 10bits
 				$probe10Bits = $vendorCodecs[$pipeline.gpuVendor]["PROBE_10BIT"]
-				$args10 = @("-f", "lavfi", "-i", "nullsrc=s=1280x720:d=1", "-c:v", $codecAlvo, "-gpu", $Config.gpu_id, "-pix_fmt", $probe10Bits, "-f", "null", "-")
-				$res10  = & $pipeline.ffmpeg -hide_banner $args10 2>&1 | Out-String
+				$args10 = @("-init_hw_device", "vulkan=vk:$($Config.gpu_id)", "-f", "lavfi", "-i", "nullsrc=s=1280x720:d=1", "-c:v", $codecAlvo, "-pix_fmt", $probe10Bits, "-f", "null", "-")
+				$res10  = & $paths.ffmpeg -hide_banner $args10 2>&1 | Out-String
 
 				if ($res10 -notmatch "Conversion failed" -and $res10 -notmatch "not supported") {
 					$pipeline.codec10BitsSupp = $true
@@ -130,6 +128,9 @@ function Initialize-GlobalPipeline {
 			$pipeline.gpuVendor = "CPU"
 		}
 			
+	} else { 
+		$pipeline.codec8BitsSupp = $true
+		$pipeline.codec10BitsSupp = $true
 	}
 	
 	# Seta codec globalmente
@@ -153,8 +154,8 @@ function Initialize-GlobalPipeline {
 		# Define o valor do FSR_PQ
 		$fsrPQValor = if ($Config.HDR -eq $true -or $Config.HDR -eq "true") { 1 } else { 0 }
 
-		if (Test-Path $pipeline.shader) {
-			$linhasShader = Get-Content $pipeline.shader
+		if (Test-Path $paths.shader) {
+			$linhasShader = Get-Content $paths.shader
 			$novaLinhaSharpness = "#define SHARPNESS $($fsrSharpness.ToString('0.0', [System.Globalization.CultureInfo]::InvariantCulture))"
 			$novaLinhaPQ = "#define FSR_PQ $fsrPQValor"
 			
@@ -168,15 +169,26 @@ function Initialize-GlobalPipeline {
 					$linhasShader[$i] = $novaLinhaPQ
 				}
 			}
-			Set-Content $pipeline.shader -Value $linhasShader -Encoding UTF8
+			Set-Content $paths.shader -Value $linhasShader -Encoding UTF8
 		}
 	}
 
     # Prepara o caminho do shader formatado para o libplacebo
-    $pipeline.shaderFFmpeg = $pipeline.shader.Replace("\", "/").Replace(":", "\:")
+    $paths.shaderFFmpeg = $paths.shader.Replace("\", "/").Replace(":", "\:")
 	
 	# Cria a lista que vai guardar o histórico de todos os vídeos processados na sessão
 	$Global:SessionHistory = @()
 
-    return $pipeline
+	#debug
+	if ($Config.debug -eq $true) {
+		Write-Host "`n[ pipeline ] $($pipeline) `n" -ForegroundColor Yellow
+	}
+	
+	# mescla objetos paths e pipeline para retorno
+	$pipelineReturn = @{}
+    foreach ($p in $paths.psobject.properties) { $pipelineReturn[$p.Name] = $p.Value }
+    foreach ($p in $pipeline.psobject.properties) { $pipelineReturn[$p.Name] = $p.Value }
+
+    return [PSCustomObject]$pipelineReturn
+	
 }

@@ -67,8 +67,8 @@ function Show-VideoStatus {
 
     # Mini relatório em linha única
     Write-Host "  [SUCCESS] " -NoNewline -ForegroundColor Green
-	if ($Result.bitsDowngrade -eq $true -or $Result.bitsDowngrade -eq "true") {
-		Write-Host "`            GPU doesn't support 10-bit HEVC. Downgraded to 8-bit." -ForegroundColor Yellow
+	if ($Result.bitsDowngrade -eq $true) {
+		Write-Host "` GPU doesn't support 10-bit HEVC. Downgraded to 8-bit." -ForegroundColor Yellow
 	}
     Write-Host "| Time: $tempoRender | Speed: $speedFactor | Size: $tamanhoFinalStr | Bitrate: $bitrateStr" -ForegroundColor Gray
 

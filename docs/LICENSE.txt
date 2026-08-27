@@ -2,7 +2,7 @@
                         CREDITS & LICENSE ATTRIBUTIONS
 ================================================================================
 
-CommandUP Pipeline v1.0.2 by Aless (MaulSmoke)
+CommandUP Pipeline v1.0.3 by Aless (MaulSmoke)
 
 This standalone package distributes a modular post-processing pipeline composed 
 of open-source tools integrated with custom, authorial automation logic. 

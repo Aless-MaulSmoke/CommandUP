@@ -1,4 +1,4 @@
-# CommandUP (cup) Pipeline v1.0.2 — Upscale + Frame Interpolator 🎬
+# CommandUP (cup) Pipeline v1.0.3 — Upscale + Frame Interpolator 🎬
 
 > **Lightweight, autonomous video post-processing pipeline built exclusively for Windows.** Bring the "Lossless Scaling" workflow to your offline local video files on low-end and legacy hardware.
 
@@ -58,6 +58,7 @@ Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
 You can modify the default processing behavior by editing the `DRAG_CONFIG.txt` file:
 ```ini
 [DRAG_SETTINGS]
+FORMAT=mp4
 QUALITY=med
 FPS=60
 INTERPOLATE=oversample
@@ -78,17 +79,20 @@ This is the core modular script used for upscaling and frame interpolation. Cust
 
 * `-file "path\video.mp4"`: Absolute path to the source video file (supports `.mp4` and `.mkv`).
 * `-folder "path\directory"`: Absolute path to a folder for batch video processing.
-* `-scale factor|resolution`: Target dimension. Can be a decimal multiplier (e.g., `1.5` scales 720p to 1080p) or a literal resolution string (e.g., `"1280x720"`, `"1920x1080"`, `"2560x1440"`, `"3840x2160"`). If omitted, upscaling is skipped.
+* `-format "mp4|mkv"`: Selects the final video file format.
+  * `mp4`: Focuses on maximum compatibility. Preserves only the main audio track and completely removes embedded subtitles.
+  * `mkv`: Designed for composite media. Preserves multiple audio tracks and embedded subtitles.
+* `-quality "low|med|big"`: Compression profile. Defaults to balanced `med`.
+  * `low`: Low VRAM overhead, aggressive space-saving, small file size.
+  * `med`: Sweet spot. Preserves edge sharpness without bloating storage.
+  * `big`: Maximum visual fidelity and high bitrate, meant for archival.
 * `-fps [number]`: Target framerate (e.g., `60`). If omitted, frame generation is skipped.
 * `-interpolate "none|oversample|mitchell_clamp|linear"`: Controls temporal smoothness. Defaults to `"none"`.
   * `none`: Pure frame duplication (Nearest Neighbor). Maximum GPU savings, crisp visuals, absolutely no ghosting.
   * `oversample`: Smooth Motion sampling. Blends frames only when needed, preserving the natural appearance.
   * `mitchell_clamp`: High-quality smooth interpolation. Eliminates ringing and artifacts (requires modern GPU/RTX).
   * `linear`: Linear blend overlay. Extremely lightweight, ideal for older configurations.
-* `-quality "low|med|big"`: Compression profile. Defaults to balanced `med`.
-  * `low`: Low VRAM overhead, aggressive space-saving, small file size.
-  * `med`: Sweet spot. Preserves edge sharpness without bloating storage.
-  * `big`: Maximum visual fidelity and high bitrate, meant for archival.
+* `-scale factor|resolution`: Target dimension. Can be a decimal multiplier (e.g., `1.5` scales 720p to 1080p) or a literal resolution string (e.g., `"1280x720"`, `"1920x1080"`, `"2560x1440"`, `"3840x2160"`). If omitted, upscaling is skipped.
 * `-sharpness [0-10]`: FSR sharpness filtering strength, ranging from `0` to `10`.
 * `-codec "avc|hevc"`: Selects the video encoding standard for the output file.
   * `avc`: Advanced Video Coding (H.264) 8-Bit. Recommended for maximum compatibility and older/legacy graphics cards.
@@ -98,9 +102,15 @@ This is the core modular script used for upscaling and frame interpolation. Cust
   * `true`: Forces FSR to use PQ color space (only use if source video is HDR10/PQ).
 * `-shutdown "false|true"`: Computer shutdown behavior. Defaults to `false`.
   * `true`: Triggers a 30-second countdown upon completion. Press `[ENTER]` to shut down immediately, or `[ESC]` to cancel.
-* `-hud_port [number]`: Overrides the default TCP port used for HUD communication.
+* `-port [number]`: Overrides the default TCP port used for HUD communication.
 * `-verbose`: Overrides the default logging behavior to enable detailed verbose output.
 * `-gpu_id`: If you have more than one video card, specify which one you want to use via the video card ID number. Usually 0 for the first vCard, 1 for the second.
+* `-simulate "false|true"`: Try simulating other cards. Use "cpu" to force encoding via the processor. For "Nvidia, AMD, and Intel," a properly configured Vulkan SDK is required.
+  * `none`: System default using your GPU.
+  * `cpu`: This forces CPU-only encoding; try using it if you run into issues with your graphics card lacking an encoder.
+  * `nvidia | amd | intel`: Try simulating one of these brands using a properly configured VulkanSDK.
+* `-debug`: Displays technical information on the HUD for debugging.
+  
 
 [!IMPORTANT]
 🔒 **Safety Rule:** You must specify either `-file` or `-folder` (never both). The script strictly requires at least one action parameter: `-scale` or `-fps`.
@@ -141,9 +151,11 @@ You can tweak global parameters by editing the `config.ini` file located at the 
 
 ```ini
 [CUP_SETTINGS]
-HUD_PORT=4867
+PORT=50548
 VERBOSE=false
 GPU_ID=0
+SIMULATE=none
+DEBUG=false
 ```
 
 ---

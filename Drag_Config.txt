@@ -1,4 +1,5 @@
 [DRAG_SETTINGS]
+FORMAT=mp4
 QUALITY=med
 FPS=60
 INTERPOLATE=oversample
@@ -12,12 +13,21 @@ SHUTDOWN=false
 #             DOCUMENTATION & REFERENCE MANUAL (Read Only)
 # =====================================================================
 #
+#  FORMAT:
+#  --------------------------------------------------------------------
+#  Selects the final video file format.
+#  mp4 - Focuses on maximum compatibility. Preserves only the main 
+#        audio track and completely removes embedded subtitles.
+#  mkv - Developed for composite media. Preserves multiple audio 
+#        tracks and embedded subtitles.
+#
+#
 #  QUALITY:
 #  --------------------------------------------------------------------
 #  Controls compression, file weight, and VRAM usage profile.
-#  low  - Drastic space saving. Smallest file size. Eases VRAM load.
-#  med  - Balanced. Keeps edge sharpness without blowing up size.
-#  big  - Maximum visual fidelity. Very high bitrate. Huge file.
+#  low - Drastic space saving. Smallest file size. Eases VRAM load.
+#  med - Balanced. Keeps edge sharpness without blowing up size.
+#  big - Maximum visual fidelity. Very high bitrate. Huge file.
 #
 #
 #  FPS:

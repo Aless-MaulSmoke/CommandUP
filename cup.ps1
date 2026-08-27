@@ -1,11 +1,11 @@
 ﻿# ==========================================================================
 # ------------------------------
 #
-#   Command UP (cup) Pipeline (v1.0.2)
+#   Command UP (cup) Pipeline (v1.0.3)
 #   An automated pipeline for high-performance video upscaling via CLI.
 #
 #   cup.ps1 (Powershell script)
-#   2026/08/20
+#   2026/08/27
 #   by Aless (MaulSmoke)
 #
 #   A modular script designed to orchestrate lightweight, hardware-accelerated 
@@ -17,6 +17,9 @@
 #  -folder "string"
 #   The path to a target directory containing multiple videos for batch processing.
 #
+#  -format "string"
+#   The type of video file: " mp4 | mkv ".
+#
 #  -scale "string"
 #   The target resolution (e.g., "1920x1080") or decimal multiplier factor (e.g., 1.5).
 #
@@ -24,54 +27,61 @@
 #   The target frame rate for the final output video smoothness (e.g., 60).
 #
 #  -interpolate "string"
-#   The frame mixing algorithm: "none", "oversample", "mitchell_clamp", or "linear".
+#   The frame mixing algorithm: " none | oversample | mitchell_clamp | linear ".
 #
 #  -quality "string"
-#   The compression profile and file size weight: "LOW", "MED", or "BIG".
+#   The compression profile and file size weight: " low | med | big ".
 #
 #  -sharpness number
 #   The edge crispness applied by FSR, ranging from 0 to 10 (Default is 5).
 #
 #  -codec
-#   Select the video encoding standard for the output file: "avc", "hevc". (avc supports 8-bit videos and hevc supports 8- and 10-bit videos).
+#   Select the video encoding standard for the output file: " AVC | HEVC ". (avc supports 8-bit videos and hevc supports 8- and 10-bit videos).
 #
 #  -hdr
-#   Switch flag to force the FSR pass into the PQ color space pipeline (HDR10 source only), requires hevc (10bits) codec.
+#   Switch flag to force the FSR pass into the PQ color space pipeline (HDR10 source only), requires hevc (10-Bit) codec.
 #
 #  -shutdown
 #   Switch flag to trigger a safe 30-second system power-off countdown after execution.
 #
-#  -DRAG_CONFIG
+#  -drag_config
 #   Switch flag to automatically read and load parameters directly from DRAG_CONFIG.txt.
 #
-#  -hud_port
+#  -port
 #   Defines the TCP port used to real-time HUD progress interface between ffmpeg and cup.
 #
 #  -verbose
-#   Switch flag to toggle detailed real-time rendering logs (Verbose mode).
+#   Switch flag to toggle detailed real-time rendering logs in file. (Verbose mode).
 #
 #  -gpu_id
 #   If you have more than one video card, specify which one you want to use via the video card ID number.
+#
+#  -simulate "string"
+#   Use the VulkanSDK to simulate vcards for testing. " none | nvidia | amd | intel | cpu ".
+#
+#  -debug
+#   Displays technical information on the HUD for debugging.
 #
 # ------------------------------
 
 param(
     [string]$file,
     [string]$folder,
+    [string]$format,
     [string]$scale,
     [int]$fps,
-	[string]$interpolate = "none",
-    [string]$quality = "MED",
+	[string]$interpolate,
+    [string]$quality,
 	[System.Nullable[int]]$sharpness,
-	[string]$codec = "avc",
+	[string]$codec,
 	[switch]$hdr,
 	[switch]$shutdown,
-	[switch]$DRAG_CONFIG,
-    [int]$hud_port,
+	[switch]$drag_config,
+    [int]$port,
 	[switch]$verbose,
-	[int]$gpu_id,
-	[string]$simulate_gpu = "none",
-	[switch]$debug = $false
+	[System.Nullable[int]]$gpu_id,
+	[string]$simulate,
+	[switch]$debug
 )
 
 # =====================================================================
@@ -124,11 +134,6 @@ foreach ($VideoAtual in $FilaTrabalho) {
     
     # Extração de Metadados e Validação de Redundância por Arquivo
     $Metadata = Get-VideoMetadataAndValidate -VideoPath $VideoAtual -Config $Config -Pipeline $Pipeline
-	
-	#debug
-	if ($Config.debug -eq $true -or $Config.debug -eq "true") {
-		Write-Host "`n[ Metadata ] $Metadata `n" -ForegroundColor Yellow
-	}
 	
     # Se o arquivo foi pulado por redundância ou falha no FFprobe
 	if ($Metadata.SkipVideo) {
