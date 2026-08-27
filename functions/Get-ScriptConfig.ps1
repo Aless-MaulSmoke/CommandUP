@@ -119,7 +119,7 @@ function Get-ScriptConfig {
     # valida: FORMAT -----------------------------------------------------------
 	$config.format = $config.format.ToLower().Trim()
 	if (-not (Match_Validation $config.format @("mp4", "mkv"))) {
-		$errosEncontrados += 16
+		$errosEncontrados += 17
 	}
 
     # valida: QUALITY ----------------------------------------------------------
@@ -278,6 +278,6 @@ function Boolean_Validation($value) {
 
 # Valida se existe na lista
 function Match_Validation($value, [array]$list) {
-    return $Value -in $list
+    return $value -in $list
 }
 

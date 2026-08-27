@@ -13,7 +13,7 @@ All notable changes to this project will be documented in this file. This projec
 * **New parameter: -debug:** Displays technical information on the HUD for debugging. Parameter editable via the config.ini file, or use via the command line.
 * **Fixed a bug with HDR videos.:** HDR processing now mandates 10-bit HEVC encoding, BT.2020 color space, and SMPTE ST 2084 color transfer. It is no longer possible to downgrade HDR videos to 8-bit or 10-bit SDR.
 * **Fixed an issue with the vCard encoding capability test:** Some vCards were failing the 8 and 10-bit encoding capability test, forcing encoding via the CPU.
-* **Fixed issues with AMD Vega 8:** Support for the Vega 8 was already in place, but an adjustment was required to ensure compatibility with the latest updates.
+* **Fixed issues with AMD Vega:** Support for the Vega was already in place, but an adjustment was required to ensure compatibility with the latest updates.
 * **MKV Video Fixes:** Previous updates had broken MKV file playback. Fix applied.
  
 ### CUP [v1.0.2] - 2026-08-18
