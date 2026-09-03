@@ -334,7 +334,6 @@ function Invoke-VideoPipeline {
 							$tsDecorrido = $cronometro.Elapsed
 							$decorridoStr = "{0:d2}:{1:d2}:{2:d2}" -f [int][math]::Truncate($tsDecorrido.TotalHours), $tsDecorrido.Minutes, $tsDecorrido.Seconds
 
-							# O restante do seu bloco de montagem da barra visual e Write-Host continua igual...
 							# Montagem da Barra Visual
 							$preenchido = [int][math]::Round(($porcentagem / 100) * $larguraBarra)
 							$vazio = $larguraBarra - $preenchido
