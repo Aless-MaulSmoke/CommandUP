@@ -10,7 +10,8 @@ All notable changes to this project will be documented in this file. This projec
 * **New FPS parameter behavior:** If you now set the FPS to 0 (zero), the final video(s) will retain the original FPS. This is very useful for batch processing.
 * **FFmpeg Downgrade:** FFmpeg and libplacebo have been replaced with older versions to support older NVIDIA drivers (531.4) as well as Vulkan 1.2.
 * **Fix for “Full” Color Range Videos:** ‘Full’ videos were being converted to “Limited.” A fix has been applied so they are now generated as “Full.”
-* **VCard Identification in Clusters:** An issue has been fixed regarding the correct identification of vCards via the -gpu_id parameter in Crossfire/SLI environments where vCards with the same name and model exist.
+* **Identification of identical VCards:** A problem was fixed with correctly identifying vCards using the -gpu_id parameter in setups where there are vCards with the same name and model.
+* **Removed bit downgrade system:** Previously, if your vcard didn't support 10-bit encoding but did support 8-bit, the pipeline would downgrade to 8-bit. Now the video is encoded in 10-bit using your CPU.
 
 
 ### CUP [v1.0.3] - 2026-08-27

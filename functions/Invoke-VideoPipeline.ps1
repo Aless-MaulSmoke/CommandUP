@@ -55,41 +55,25 @@ function Invoke-VideoPipeline {
     $inPrimaries = $Metadata.colorPrimaries
     $inTrc = $Metadata.colorTransfer
     $bitsFormat = $Metadata.bitsFormat
-    $bitsOutput = $Metadata.bitsOutput
-    $bitsDowngrade = $Metadata.bitsDowngrade
+	$needEmulate = $Metadata.needEmulate
     $placeboRange = if ($inRange -eq "limited" -or $inRange -eq "tv") { "tv" } else { "pc" }
 
     # Conversão de formatos para range Full
     $mapaFormatosFull = @{
-        "yuvj420p" = "yuv420p"
-        "yuvj422p" = "yuv422p"
-        "yuvj444p" = "yuv444p"
-        "nv12"     = "nv12"
-        "p010le"   = "p010le"
-        "p010"     = "p010le"
-        "yuv420p10le"= "yuv420p10le"
-        "yuv444p10le"= "yuv444p10le"
-    }
-
-    # Conversão de 10 para 8bits usando formatos planares
-    $mapaFormatosDown = @{
-        "p010"        = "nv12"
-        "p010le"      = "nv12"
-        "yuv420p10le" = "yuv420p"
-        "yuv444p10le" = "yuv444p"
+        "yuvj420p"    = "yuv420p"
+        "yuvj422p"    = "yuv422p"
+        "yuvj444p"    = "yuv444p"
+        "nv12"        = "nv12"
+        "p010le"      = "p010le"
+        "p010"        = "p010le"
+        "yuv420p10le" = "yuv420p10le"
+        "yuv444p10le" = "yuv444p10le"
     }
 
     # Trata formatos se colorRange for Full
     if ($placeboRange -eq "pc" -and -not $gpuColorFix) {
         if ($mapaFormatosFull.ContainsKey($inPix)) {
             $inPix = $mapaFormatosFull[$inPix]
-        }
-    }
-
-    # Trata o downgrade de 10 para 8 bits
-    if (($bitsFormat -eq 10 -and $codec -eq "avc") -or $Metadata.bitsDowngrade -eq $true) {
-        if ($mapaFormatosDown.ContainsKey($inPix)) {
-            $inPix = $mapaFormatosDown[$inPix]
         }
     }
 
@@ -159,7 +143,7 @@ function Invoke-VideoPipeline {
         fpsOut = $Metadata.fpsOut
         Speed = 0.0
         Bitrate = "N/A"
-        bitsDowngrade = $bitsDowngrade
+        needEmulate = $needEmulate
         ErrorMessage = $null
     }
     $tsDuracao = [TimeSpan]::FromSeconds($Resultado.DuracaoVideo)
@@ -209,7 +193,6 @@ function Invoke-VideoPipeline {
                             ($Global:CodecArgs -join ' ') + ' ' +
                             $argsMetadadosCor +
                             '-tag:v ' + $codecArgs[$codec] + $formatosArgs[$format] + '"' + $outFile + '"'
-							
 
 		#debug
 		if ($Config.debug -eq $true) {
@@ -251,7 +234,7 @@ function Invoke-VideoPipeline {
 
 --------------------------------------------------------[ Press Q key to abort ]----
   [File     ]: $($Metadata.NomeArquivo)
-  [Format   ]: $($Metadata.wOriginal)x$($Metadata.hOriginal)/$($metadata.fpsOriginal) $($metadata.bitsFormat)-Bit -> $($Metadata.widthOut)x$($Metadata.heightOut)/$($Metadata.fpsOut) $($metadata.bitsOutput)-Bit 
+  [Format   ]: $($Metadata.wOriginal)x$($Metadata.hOriginal)/$($metadata.fpsOriginal) -> $($Metadata.widthOut)x$($Metadata.heightOut)/$($Metadata.fpsOut) $($metadata.bitsFormat)-Bit $((Get-Culture).TextInfo.ToTitleCase($inRange.ToLower()))
   [Length   ]: $($timeDuracao)
 "@
 				Write-Host $layoutEstatico

@@ -37,14 +37,14 @@ function Initialize-GlobalPipeline {
 	$pipeline.qp_i = $crfProfiles[$Config.quality] # Reutilizando a variável qp_i para guardar o QP/CRF base
 
 	# Dicionário de mapeamento de codecs, perfis e formatos para teste hevc por Fabricante
-	$vendorCodecs = @{
+	$Global:vendorCodecs = @{
 		"AMD"    = @{ "AVC" = "h264_amf";   "HEVC" = "hevc_amf";   "PROBE_10BIT" = "yuv420p10le" }
 		"NVIDIA" = @{ "AVC" = "h264_nvenc"; "HEVC" = "hevc_nvenc"; "PROBE_10BIT" = "p010le"       }
 		"INTEL"  = @{ "AVC" = "h264_qsv";   "HEVC" = "hevc_qsv";   "PROBE_10BIT" = "p010le"       }
 		"CPU"    = @{ "AVC" = "libx264";    "HEVC" = "libx265";    "PROBE_10BIT" = "yuv420p10le" }
 	}
 	
-	$vendorArgs = @{
+	$Global:vendorArgs = @{
 		"AMD"    = @("-rc", "cqp", "-qp_i", $pipeline.qp_i, "-qp_p", ($pipeline.qp_i + 2))
 		"NVIDIA" = @("-rc", "constqp", "-qp", $pipeline.qp_i)
 		"INTEL"  = @("-global_quality", $pipeline.qp_i)
@@ -223,20 +223,14 @@ function Initialize-GlobalPipeline {
 
 		}
 
-		# Se a GPU falhar no teste básico de 8-bit, rebaixa para a CPU
-		if (-not $pipeline.codec8BitsSupp) {
-			$pipeline.gpuName   = "$($pipeline.gpuName) (don't encoder support |using CPU)"
-			$pipeline.gpuVendor = "CPU"
-		}
-			
 	} else { 
 		$pipeline.codec8BitsSupp = $true
 		$pipeline.codec10BitsSupp = $true
 	}
 	
 	# Seta codec globalmente
-	$Global:SelectedCodec = $vendorCodecs[$pipeline.gpuVendor][$Config.codec]
-	$Global:CodecArgs     = $vendorArgs[$pipeline.gpuVendor]
+	$Global:SelectedCodec = $Global:vendorCodecs[$pipeline.gpuVendor][$Config.codec]
+	$Global:CodecArgs     = $Global:vendorArgs[$pipeline.gpuVendor]
 	
     # Define argumentos verbose
     if ($Config.verbose) { 

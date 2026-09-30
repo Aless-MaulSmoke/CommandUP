@@ -56,9 +56,6 @@ param (
 		"BT.470 SYSTEM B, G"    = "bt470bg"
 	}
 
-	[int]$bitsOutput = 0
-	[bool]$bitsDowngrade = $false
-
 	try {
 		$probeOutput = & $Pipeline.ffprobe $ffprobeArgs 2>$null
 
@@ -83,9 +80,17 @@ param (
 			$colorPrimaries = [string]$partesValidas[6]
 			$fpsRaw         = [string]$partesValidas[7]
 			$duracaoSecs    = [double]$partesValidas[8]
-			
-			# Tenta novo probe via MediaInfo caso cores retornem: unknown
-			if ($colorSpace -eq "unknown" -or $colorTransfer -eq "unknown" -or $colorPrimaries -eq "unknown") {
+
+			#debug
+			if ($Config.debug -eq $true) {
+				Write-Host "`n[ ffprobe ] $partesValidas `n" -ForegroundColor Yellow
+			}
+
+			# Lista de valores inválidos que podem ser retornados pelo ffprobe
+			$ffprobeFalhas = @("unknown", "reserved", "unspecified")
+
+			# Tenta novo probe via MediaInfo caso algum metadado de cor contenha um valor inválido
+			if ($colorSpace -in $ffprobeFalhas -or $colorTransfer -in $ffprobeFalhas -or $colorPrimaries -in $ffprobeFalhas) {
 				if (Test-Path $Pipeline.mediainfo) {
 					$miOutput = & $Pipeline.mediainfo --Inform="Video;%matrix_coefficients%,%transfer_characteristics%,%colour_primaries%" $VideoPath 2>$null
 					if ($null -ne $miOutput -and $miOutput.Trim() -ne "") {
@@ -94,7 +99,12 @@ param (
 						if ($miPartes[0] -ne "") { $raw0 = $miPartes[0].Trim().ToUpper(); $colorSpace     = if ($mapMatrix.ContainsKey($raw0)) { $mapMatrix[$raw0] } else { "unknown" } }
 						if ($miPartes[1] -ne "") { $raw1 = $miPartes[1].Trim().ToUpper(); $colorTransfer  = if ($mapTransfer.ContainsKey($raw1)) { $mapTransfer[$raw1] } else { "unknown" } }
 						if ($miPartes[2] -ne "") { $raw2 = $miPartes[2].Trim().ToUpper(); $colorPrimaries = if ($mapPrimaries.ContainsKey($raw2)) { $mapPrimaries[$raw2] } else { "unknown" } }
+
 					}
+				}
+				#debug
+				if ($Config.debug -eq $true) {
+					Write-Host "`n[ mediainfo ] $colorSpace $colorTransfer $colorPrimaries `n" -ForegroundColor Yellow
 				}
 			}
 			
@@ -113,6 +123,8 @@ param (
 		if ($colorRange -eq "tv") { $colorRange = "limited" }
 		if ($colorRange -eq "pc") { $colorRange = "full" }
 		
+		$needEmulate = $false
+
 		# Define se é HDR
 		if ($colorSpace -like "bt2020*" -and $colorTransfer -eq "smpte2084") { $isHDR = $true } else { $isHDR = $false }
 
@@ -122,8 +134,6 @@ param (
 		} else {
 			throw "Error: The video format '$pixFormat' is not certified or supported."
 		}
-		[int]$bitsOutput = $bitsFormat
-		[bool]$bitsDowngrade = $false
 
 		# Bloqueio Crítico caso tente gerar HDR com video de origem que não seja 10bits
 		if (($Config.hdr -eq $true) -and ($isHDR -eq $false ) -and ($bitsFormat -ne 10 -and $Config.codec.ToLower() -ne "hevc")) {
@@ -140,15 +150,22 @@ param (
 			throw "The HDR parameter is set to False, but the source video is HDR."
 		}
 
-		# Força downgrade para 8bits se hevc não tiver suporte a 10bits na vcard
-		if ($bitsFormat -eq 10 -and $Pipeline.codec10BitsSupp -eq $false -and $Config.simulate -ne "cpu") {
-			$bitsOutput = 8
-			$bitsDowngrade = $true
+		# Força modo emulado caso a vcard não tenha suporte
+		if ((($bitsFormat -eq 8) -and ($Pipeline.codec8BitsSupp -eq $false)) -or (($bitsFormat -eq 10) -and ($Pipeline.codec10BitsSupp -eq $false))) {
+			$needEmulate = $true
 		}
 		
-		# Bloqueio Crítico caso tente gerar HDR com vcard que não suporte 10bits
-		if (($isHDR -eq $true ) -and ($bitsDowngrade -eq $true)) {
-			throw "HDR video requires 10-bit encoding. Your GPU doesn't support it. Try simulate=cpu"
+		# Força modo emulado caso tente gerar HDR com vcard que não suporte 10bits
+		if (($isHDR -eq $true ) -and ($Pipeline.codec10BitsSupp -eq $false)) {
+			$needEmulate = $true
+		}
+		
+		# Seta modo emulado que força encode via CPU
+		if ($needEmulate -eq $true) {
+			$Pipeline.gpuName   = "$($pipeline.gpuName) (don't encoder support |using CPU)"
+			$Pipeline.gpuVendor = "CPU"
+			$Global:SelectedCodec = $Global:vendorCodecs[$Pipeline.gpuVendor][$Config.codec]
+			$Global:CodecArgs     = $Global:vendorArgs[$Pipeline.gpuVendor]
 		}
 
 	} catch {
@@ -208,8 +225,7 @@ param (
 		hOriginal       = $hOriginal
 		pixFormat       = $pixFormat
 		bitsFormat      = $bitsFormat
-		bitsOutput      = $bitsOutput
-		bitsDowngrade   = $bitsDowngrade
+		needEmulate     = $needEmulate
 		colorRange      = $colorRange
 		colorSpace      = $colorSpace
 		colorPrimaries  = $colorPrimaries
