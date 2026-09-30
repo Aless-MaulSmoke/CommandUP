@@ -1,5 +1,4 @@
-﻿
-// Copyright (c) 2021 Advanced Micro Devices, Inc. All rights reserved.
+﻿// Copyright (c) 2021 Advanced Micro Devices, Inc. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +41,7 @@
 //!COMPONENTS 1
 
 // User variables - EASU
-#define FSR_PQ 0 // Whether the source content has PQ gamma or not. Needs to be set to the same value for both passes. 0 or 1.
+#define FSR_PQ 0
 #define FSR_EASU_DERING 1 // If set to 0, disables deringing for a small increase in performance. 0 or 1.
 #define FSR_EASU_SIMPLE_ANALYSIS 0 // If set to 1, uses a simpler single-pass direction and length analysis for an increase in performance. 0 or 1.
 #define FSR_EASU_QUIT_EARLY 0 // If set to 1, uses bilinear filtering for non-edge pixels and skips EASU on those regions for an increase in performance. 0 or 1.
@@ -369,9 +368,9 @@ vec4 hook() {
 //!COMPONENTS 1
 
 // User variables - RCAS
-#define SHARPNESS 1.0
+#define SHARPNESS 0.0
 #define FSR_RCAS_DENOISE 1 // If set to 1, lessens the sharpening on noisy areas. Can be disabled for better performance. 0 or 1.
-#define FSR_PQ 0 // Whether the source content has PQ gamma or not. Needs to be set to the same value for both passes. 0 or 1.
+#define FSR_PQ 0
 
 // Shader code
 
