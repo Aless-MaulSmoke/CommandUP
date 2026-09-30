@@ -1,4 +1,4 @@
-# CommandUP (cup) Pipeline v1.0.3 — Upscale + Frame Interpolator 🎬
+# CommandUP (cup) Pipeline v1.0.4 — Upscale + Frame Interpolator 🎬
 
 > **Lightweight, autonomous video post-processing pipeline built exclusively for Windows.** Bring the "Lossless Scaling" workflow to your offline local video files on low-end and legacy hardware.
 
@@ -86,7 +86,7 @@ This is the core modular script used for upscaling and frame interpolation. Cust
   * `low`: Low VRAM overhead, aggressive space-saving, small file size.
   * `med`: Sweet spot. Preserves edge sharpness without bloating storage.
   * `big`: Maximum visual fidelity and high bitrate, meant for archival.
-* `-fps [number]`: Target framerate (e.g., `60`). If omitted, frame generation is skipped.
+* `-fps [number]`: Target framerate (e.g., `60`). If 0, frame generation is skipped.
 * `-interpolate "none|oversample|mitchell_clamp|linear"`: Controls temporal smoothness. Defaults to `"none"`.
   * `none`: Pure frame duplication (Nearest Neighbor). Maximum GPU savings, crisp visuals, absolutely no ghosting.
   * `oversample`: Smooth Motion sampling. Blends frames only when needed, preserving the natural appearance.
