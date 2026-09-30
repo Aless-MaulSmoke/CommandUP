@@ -2,7 +2,7 @@
                         CREDITS & LICENSE ATTRIBUTIONS
 ================================================================================
 
-CommandUP Pipeline v1.0.3 by Aless (MaulSmoke)
+CommandUP Pipeline v1.0.4 by Aless (MaulSmoke)
 
 This standalone package distributes a modular post-processing pipeline composed 
 of open-source tools integrated with custom, authorial automation logic. 
@@ -11,7 +11,7 @@ Listed below are the copyrights and licenses for each individual component:
 --------------------------------------------------------------------------------
 1. CORE COMPONENT: FFmpeg (Specific Custom Build)
 --------------------------------------------------------------------------------
-* Version Used: ffmpeg version N-125258-gdf94900c98-20260624 (Ecos. v8.x)
+* Version Used: ffmpeg 7.0.2-full_build-www.gyan.dev
 * Copyright: Copyright (c) 2000-2026 the FFmpeg developers
 * Applicable License: GNU General Public License (GPL v2.0 or later)
 * Details: The original source code belongs to the FFmpeg community. Due to the 

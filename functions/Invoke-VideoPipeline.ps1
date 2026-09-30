@@ -16,190 +16,200 @@ function Invoke-VideoPipeline {
     if ($Config.folder) {
         $nomePastaOrigem = [System.IO.Path]::GetFileName([System.IO.Path]::GetDirectoryName($VideoPath))
         if ([string]::IsNullOrEmpty($nomePastaOrigem)) { $nomePastaOrigem = "Lote_Processado" }
-        
+
         $subpastaLog = Join-Path -Path $Pipeline.logpath -ChildPath $nomePastaOrigem
         if (-not (Test-Path $subpastaLog)) {
             New-Item -ItemType Directory -Path $subpastaLog -Force | Out-Null
         }
         $diretorioLogAlvo = $subpastaLog
-    } 
+    }
     else {
         if (-not (Test-Path $Pipeline.logpath)) {
             New-Item -ItemType Directory -Path $Pipeline.logpath -Force | Out-Null
         }
         $diretorioLogAlvo = $Pipeline.logpath
     }
-	
+
     # Resgate de Variáveis Locais
-	$format        = $Config.format
-    $scale         = $Config.scale
-    $fps           = $Config.fps
-    $quality       = $Config.quality
-    $sharpness     = $Config.sharpness
-	$codec         = $Config.codec
-	$hdr           = $Config.hdr
-	$port          = $Config.port
-	$gpu_id        = $Config.gpu_id
-    $shaderFFmpeg  = $Pipeline.shaderFFmpeg
-	$gpuName       = $Pipeline.gpuName
-	$gpuColorFix   = $pipeline.gpuColorFix
-	$gpuVulkanArgs = $pipeline.gpuVulkanArgs
-    $wOriginal     = $Metadata.wOriginal
-    $hOriginal     = $Metadata.hOriginal
-    $widthOut      = $Metadata.widthOut
-    $heightOut     = $Metadata.heightOut
-    $inPix         = $Metadata.pixFormat
-    $inRange       = $Metadata.colorRange
-    $inSpace       = $Metadata.colorSpace
-	$inPrimaries   = $Metadata.colorPrimaries
-	$inTrc         = $Metadata.colorTransfer
-	$bitsFormat    = $Metadata.bitsFormat
-	$bitsOutput    = $Metadata.bitsOutput
-	$bitsDowngrade = $Metadata.bitsDowngrade
-	$placeboRange  = if ($inRange -eq "limited" -or $inRange -eq "tv") { "tv" } else { "pc" }
-	
-	# Conversão de formatos para range Full
-	$mapaFormatosFull = @{
-		"yuvj420p"   = "yuv420p"
-		"yuvj422p"   = "yuv422p"
-		"yuvj444p"   = "yuv444p"
-		"nv12"       = "nv12"
-		"p010le"     = "p010le"
-		"p010"       = "p010le"
-		"yuv420p10le"= "yuv420p10le"
-		"yuv444p10le"= "yuv444p10le"
-	}
-	
-	# Conversão de 10 para 8bits usando formatos planares
-	$mapaFormatosDown = @{
-		"p010"        = "nv12"
-		"p010le"      = "nv12"
-		"yuv420p10le" = "yuv420p"
-		"yuv444p10le" = "yuv444p"
-	}
-	
-	$vfString  = ""
-	$formatFix = ""
+    $format = $Config.format
+    $scale = $Config.scale
+    $fps = $Config.fps
+    $quality = $Config.quality
+    $sharpness = $Config.sharpness
+    $codec = $Config.codec
+    $hdr = $Config.hdr
+    $port = $Config.port
+    $gpu_id = $Config.gpu_id
+    $vulkan_id = $Pipeline.vulkan_id
+    $shaderFFmpeg = $Pipeline.shaderFFmpeg
+    $gpuName = $Pipeline.gpuName
+    $gpuColorFix = $pipeline.gpuColorFix
+    $gpuVulkanArgs = $pipeline.gpuVulkanArgs
+    $wOriginal = $Metadata.wOriginal
+    $hOriginal = $Metadata.hOriginal
+    $widthOut = $Metadata.widthOut
+    $heightOut = $Metadata.heightOut
+    $inPix = $Metadata.pixFormat
+    $inRange = $Metadata.colorRange
+    $inSpace = $Metadata.colorSpace
+    $inPrimaries = $Metadata.colorPrimaries
+    $inTrc = $Metadata.colorTransfer
+    $bitsFormat = $Metadata.bitsFormat
+    $bitsOutput = $Metadata.bitsOutput
+    $bitsDowngrade = $Metadata.bitsDowngrade
+    $placeboRange = if ($inRange -eq "limited" -or $inRange -eq "tv") { "tv" } else { "pc" }
 
-	# Trata formatos se colorRange for Full
-	if ($placeboRange -eq "pc" -and -not $gpuColorFix) {
-		if ($mapaFormatosFull.ContainsKey($inPix)) {
-			$inPix = $mapaFormatosFull[$inPix]
-		}
-	}
-
-	# Trata o downgrade de 10 para 8 bits
-	if (($bitsFormat -eq 10 -and $codec -eq "avc") -or $Metadata.bitsDowngrade -eq $true) {
-		if ($mapaFormatosDown.ContainsKey($inPix)) {
-			$inPix = $mapaFormatosDown[$inPix]
-		}
-	}
-	
-	# Trata colorFix
-	if ($gpuColorFix) {
-		if ($placeboRange -eq "pc") {
-			$vfString = "scale=in_range=pc:out_range=pc,format=gbrp,"
-		} else {
-			$vfString = "format=gbrp,"
-		}
-		$formatFix = "format=gbrp,shuffleplanes=0:1:2:3,"
-	} elseif ($placeboRange -eq "pc") {
-		$vfString  = "scale=in_range=pc:out_range=pc,format=${inPix},"
-	}
-	
-	$vfString += "hwupload,libplacebo=w=${widthOut}:h=${heightOut}"
-	$sufixo = "_QUALITY_$quality"
-	
-	# FSR ativo
-    if (-not $Metadata.skipFSR) {
-        $sufixo += "_FSR_${widthOut}x${heightOut}"
-		if ($null -ne $sharpness) { $sufixo += "_SHARPNESS_$sharpness" }
-		if ($hdr -eq $true) { $sufixo += "_HDR" }
+    # Conversão de formatos para range Full
+    $mapaFormatosFull = @{
+        "yuvj420p" = "yuv420p"
+        "yuvj422p" = "yuv422p"
+        "yuvj444p" = "yuv444p"
+        "nv12"     = "nv12"
+        "p010le"   = "p010le"
+        "p010"     = "p010le"
+        "yuv420p10le"= "yuv420p10le"
+        "yuv444p10le"= "yuv444p10le"
     }
-    # IFS ativo
+
+    # Conversão de 10 para 8bits usando formatos planares
+    $mapaFormatosDown = @{
+        "p010"        = "nv12"
+        "p010le"      = "nv12"
+        "yuv420p10le" = "yuv420p"
+        "yuv444p10le" = "yuv444p"
+    }
+
+    # Trata formatos se colorRange for Full
+    if ($placeboRange -eq "pc" -and -not $gpuColorFix) {
+        if ($mapaFormatosFull.ContainsKey($inPix)) {
+            $inPix = $mapaFormatosFull[$inPix]
+        }
+    }
+
+    # Trata o downgrade de 10 para 8 bits
+    if (($bitsFormat -eq 10 -and $codec -eq "avc") -or $Metadata.bitsDowngrade -eq $true) {
+        if ($mapaFormatosDown.ContainsKey($inPix)) {
+            $inPix = $mapaFormatosDown[$inPix]
+        }
+    }
+
+    # Trata colorFix (Correção para placas VEGA)
+    $formatFix = ""
+    if ($gpuColorFix) {
+        $vfString = "format=gbrp,"
+        $formatFix = "shuffleplanes=0:1:2:3,"
+    } else {
+        $vfString = ""
+    }
+
+    $sufixo = "_QUALITY_$quality"
+    $shaderArgs = ""
+    $vfString += "hwupload,libplacebo=w=${widthOut}:h=${heightOut}"
+
+    # Aplica FSR
+    if (-not $Metadata.skipFSR -and ($widthOut -gt $wOriginal -or $heightOut -gt $hOriginal)) {
+        $sufixo += "_FSR_${widthOut}x${heightOut}"
+        if ($null -ne $sharpness) { $sufixo += "_SHARPNESS_$sharpness" }
+        if ($hdr -eq $true) { $sufixo += "_HDR" }
+        
+        if (-not [string]::IsNullOrEmpty($shaderFFmpeg)) {
+            $shaderArgs = ":custom_shader_path='${shaderFFmpeg}'"
+        }
+    }
+    # Aplica IFS
     if (-not $Metadata.skipIFS) {
-        $vfString += ":fps=${fps}:frame_mixer=$($Config.interpolate)"
+        $vfString += ":fps=$($fps):frame_mixer=$($Config.interpolate)"
         $sufixo += "_IFS_${fps}fps$($Config.interpolate.ToUpper())"
     }
 
-    # string final do parametro filters para libplacebo
-	$vfString += ":colorspace=${inSpace}:color_primaries=${inPrimaries}:color_trc=${inTrc}:range=${inRange}:custom_shader_path='${shaderFFmpeg}',hwdownload,${formatFix}format=${inPix}"
+    # Concatenação dos metadados e do shader
+    $vfString += ":colorspace=${inSpace}:color_primaries=${inPrimaries}:color_trc=${inTrc}:range=${inRange}${shaderArgs},hwdownload,${formatFix}format=${inPix}"
 
     # Definição do Arquivo de Saída usando parametro format
     $pastaSaida = [System.IO.Path]::GetDirectoryName($VideoPath)
     $extensaoOriginal = [System.IO.Path]::GetExtension($VideoPath)
-	$extensaoParametro = ".$format"
+    $extensaoParametro = ".$format"
     $videoSaida = "${nomeSemExtensao}${sufixo}${extensaoParametro}"
 
     # Preparação das variáveis exatas da assinatura de comando
-    $ffmpeg      = $Pipeline.ffmpeg
+    $ffmpeg = $Pipeline.ffmpeg
     $verboseArgs = if ($Pipeline.verboseArgs.Count -gt 0) { $Pipeline.verboseArgs } else { @() }
-    $file        = $VideoPath
-    $qp_i        = $Pipeline.qp_i
-    $qp_p        = $Pipeline.qp_p
-    $outFile     = Join-Path -Path $pastaSaida -ChildPath $videoSaida
-	
-	# Inicia escrita do FFmpeg no arquivo de log 
-	$logIndividual = Join-Path -Path $diretorioLogAlvo -ChildPath ([System.IO.Path]::ChangeExtension([System.IO.Path]::GetFileName($outFile), ".txt"))
-	$ffmpegLogPath = $logIndividual.Replace('\', '/')
-	$env:FFREPORT = "file='$ffmpegLogPath':level=32"
+    $file = $VideoPath
+    $qp_i = $Pipeline.qp_i
+    $qp_p = $Pipeline.qp_p
+    $outFile = Join-Path -Path $pastaSaida -ChildPath $videoSaida
 
-	$Resultado = [PSCustomObject]@{
-		Success         = $false
-		SkipVideo       = $false
-		NomeArquivo     = $Metadata.NomeArquivo
-		PastaSaida      = $pastaSaida
-		VideoSaida      = $videoSaida
-		OutputFile      = $outFile
-		LogPath         = $logIndividual
-		TempoDecorrido  = [TimeSpan]::Zero
-		DuracaoVideo    = $Metadata.duracaoSecs
-		widthOut        = $widthOut
-		heightOut       = $heightOut
-		fpsOut          = $Metadata.fpsOut
-		Speed           = 0.0
-		Bitrate         = "N/A"
-		bitsDowngrade   = $bitsDowngrade
-		ErrorMessage    = $null
-	}
+    # Inicia escrita do FFmpeg no arquivo de log 
+    $logIndividual = Join-Path -Path $diretorioLogAlvo -ChildPath ([System.IO.Path]::ChangeExtension([System.IO.Path]::GetFileName($outFile), ".txt"))
+    $ffmpegLogPath = $logIndividual.Replace('\', '/')
+    $env:FFREPORT = "file='$ffmpegLogPath':level=32"
+
+    $Resultado = [PSCustomObject]@{
+        Success = $false
+        SkipVideo = $false
+        NomeArquivo = $Metadata.NomeArquivo
+        PastaSaida = $pastaSaida
+        VideoSaida = $videoSaida
+        OutputFile = $outFile
+        LogPath = $logIndividual
+        TempoDecorrido = [TimeSpan]::Zero
+        DuracaoVideo = $Metadata.duracaoSecs
+        widthOut = $widthOut
+        heightOut = $heightOut
+        fpsOut = $Metadata.fpsOut
+        Speed = 0.0
+        Bitrate = "N/A"
+        bitsDowngrade = $bitsDowngrade
+        ErrorMessage = $null
+    }
     $tsDuracao = [TimeSpan]::FromSeconds($Resultado.DuracaoVideo)
-	$timeDuracao = "{0:d2}:{1:d2}:{2:d2}" -f [int][math]::Truncate($tsDuracao.TotalHours), $tsDuracao.Minutes, $tsDuracao.Seconds
-			
+    $timeDuracao = "{0:d2}:{1:d2}:{2:d2}" -f [int][math]::Truncate($tsDuracao.TotalHours), $tsDuracao.Minutes, $tsDuracao.Seconds
+
     # Cronometragem do laço de processamento
     $cronometro = [System.Diagnostics.Stopwatch]::StartNew()
-	
-	
+
     try {
-		
-		# Inicializa a escuta TCP
-		$listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, $port)
-		$listener.Start()
+        # Inicializa a escuta TCP
+        $listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, $port)
+        $listener.Start()
 
-		[System.Threading.Thread]::Sleep(50)
+        [System.Threading.Thread]::Sleep(50)
 
-		# Prepara os argumentos adicionais com base no VERBOSE do CONFIG
-		$vArgsTextoLimpo = ""
-		if ($verboseArgs) { 
-			$vArgsTextoLimpo = ($verboseArgs -join ' ') -replace "-stats", ""
-			if ($vArgsTextoLimpo) { $vArgsTextoLimpo += " " }
-		}
-		
-		# Ajusta audio e legendas dependendo do formato
-		$formatosArgs = @{"mp4" = "-c:a copy -y "; "mkv" = "-c:a copy -c:s copy -y " }
+        # Prepara os argumentos adicionais com base no VERBOSE do CONFIG
+        $vArgsTextoLimpo = ""
+        if ($verboseArgs) {
+            $vArgsTextoLimpo = ($verboseArgs -join ' ') -replace "-stats", ""
+            if ($vArgsTextoLimpo) { $vArgsTextoLimpo += " " }
+        }
 
-		# Seta a tag correta: avc1 para AVC (H.264) ou hvc1 para HEVC (H.265)
-		$codecArgs = @{"avc" = "avc1 "; "hevc" = "hvc1 " }
+        # Ajusta audio e legendas dependendo do formato
+        $formatosArgs = @{"mp4" = "-c:a copy -y "; "mkv" = "-c:a copy -c:s copy -y " }
 
-		# Monta a string do FFmpeg
-		$argumentosString = '-nostats -progress "tcp://127.0.0.1:' + $port + '" ' +
-							'-init_hw_device vulkan=vk:' + $gpu_id + $gpuVulkanArgs + ' -filter_hw_device vk ' +
-							$vArgsTextoLimpo +
-							'-i "' + $file + '" ' +
-							'-vf "' + $vfString + '" ' +
-							'-fps_mode passthrough ' +
-							'-c:v ' + $Global:SelectedCodec + ' ' +
-							($Global:CodecArgs -join ' ') + ' ' +
-							'-tag:v ' + $codecArgs[$codec] + $formatosArgs[$format] + '"' + $outFile + '"'
+        # Seta a tag correta: avc1 para AVC (H.264) ou hvc1 para HEVC (H.265)
+        $codecArgs = @{"avc" = "avc1 "; "hevc" = "hvc1 " }
+
+        # Ajuste dinâmico para gerar o video em colorange Full
+        $argsMetadadosCor = ""
+        if ($placeboRange -eq "pc") {
+            if ($Global:SelectedCodec -eq "hevc_amf") {
+                $argsMetadadosCor = "-bsf:v hevc_metadata=video_full_range_flag=1 -colorspace $($inSpace) -color_primaries $($inPrimaries) -color_trc $($inTrc) "
+            } else {
+                $argsMetadadosCor = "-color_range pc -colorspace $($inSpace) -color_primaries $($inPrimaries) -color_trc $($inTrc) "
+            }
+        }
+
+        # Monta a string do FFmpeg
+        $argumentosString = '-nostats -progress "tcp://127.0.0.1:' + $port + '" ' +
+                            '-init_hw_device vulkan=vk:' + $vulkan_id + $gpuVulkanArgs + ' -filter_hw_device vk ' +
+                            $vArgsTextoLimpo +
+                            '-i "' + $file + '" ' +
+                            '-vf "' + $vfString + '" ' +
+                            '-fps_mode passthrough ' +
+                            '-c:v ' + $Global:SelectedCodec + ' ' +
+                            ($Global:CodecArgs -join ' ') + ' ' +
+                            $argsMetadadosCor +
+                            '-tag:v ' + $codecArgs[$codec] + $formatosArgs[$format] + '"' + $outFile + '"'
+							
 
 		#debug
 		if ($Config.debug -eq $true) {

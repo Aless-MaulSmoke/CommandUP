@@ -6,6 +6,13 @@ All notable changes to this project will be documented in this file. This projec
 
 ## ☕ CommandUP Era
 
+### CUP [v1.0.4] - 2026-09-30
+* **New FPS parameter behavior:** If you now set the FPS to 0 (zero), the final video(s) will retain the original FPS. This is very useful for batch processing.
+* **FFmpeg Downgrade:** FFmpeg and libplacebo have been replaced with older versions to support older NVIDIA drivers (531.4) as well as Vulkan 1.2.
+* **Fix for “Full” Color Range Videos:** ‘Full’ videos were being converted to “Limited.” A fix has been applied so they are now generated as “Full.”
+* **VCard Identification in Clusters:** An issue has been fixed regarding the correct identification of vCards via the -gpu_id parameter in Crossfire/SLI environments where vCards with the same name and model exist.
+
+
 ### CUP [v1.0.3] - 2026-08-27
 * **HUD_PORT parameter renamed to PORT:** The change aims to improve ease of use and ensure the parameter is correctly interpreted.
 * **New parameter: -format:** You can now specify the final format in which the video will be saved ("mp4" or "mkv"). The MP4 focuses on compatibility. Preserves only the main audio track and completely removes embedded subtitles.The MKV designed for composite media. Preserves multiple audio tracks and embedded subtitles.

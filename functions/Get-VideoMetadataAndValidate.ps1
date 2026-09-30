@@ -29,6 +29,32 @@ param (
 		'-of', 'csv=p=0',
 		$VideoPath
 	)
+	
+	# Tradução de formatos do MediaInfo para o FFmpeg
+	$mapMatrix = @{
+		"BT.709"                = "bt709"
+		"BT.2020 NON-CONSTANT"  = "bt2020nc"
+		"BT.2020 CONSTANT"      = "bt2020c"
+		"BT.601 NTSC"           = "smpte170m"
+		"BT.601 PAL"            = "bt470bg"
+		"SMPTE 170M"            = "smpte170m"
+	}
+
+	$mapTransfer = @{
+		"BT.709"                = "bt709"
+		"SMPTE ST 2084"         = "smpte2084"
+		"IEC 61966-2-1"         = "iec61966-2-1"
+		"SRGB"                  = "iec61966-2-1"
+		"BT.470 SYSTEM B, G"    = "bt470bg"
+		"SMPTE 170M"            = "smpte170m"
+	}
+
+	$mapPrimaries = @{
+		"BT.709"                = "bt709"
+		"BT.2020"               = "bt2020"
+		"SMPTE 170M"            = "smpte170m"
+		"BT.470 SYSTEM B, G"    = "bt470bg"
+	}
 
 	[int]$bitsOutput = 0
 	[bool]$bitsDowngrade = $false
@@ -57,6 +83,20 @@ param (
 			$colorPrimaries = [string]$partesValidas[6]
 			$fpsRaw         = [string]$partesValidas[7]
 			$duracaoSecs    = [double]$partesValidas[8]
+			
+			# Tenta novo probe via MediaInfo caso cores retornem: unknown
+			if ($colorSpace -eq "unknown" -or $colorTransfer -eq "unknown" -or $colorPrimaries -eq "unknown") {
+				if (Test-Path $Pipeline.mediainfo) {
+					$miOutput = & $Pipeline.mediainfo --Inform="Video;%matrix_coefficients%,%transfer_characteristics%,%colour_primaries%" $VideoPath 2>$null
+					if ($null -ne $miOutput -and $miOutput.Trim() -ne "") {
+						$miPartes = $miOutput.Trim() -split ','
+						
+						if ($miPartes[0] -ne "") { $raw0 = $miPartes[0].Trim().ToUpper(); $colorSpace     = if ($mapMatrix.ContainsKey($raw0)) { $mapMatrix[$raw0] } else { "unknown" } }
+						if ($miPartes[1] -ne "") { $raw1 = $miPartes[1].Trim().ToUpper(); $colorTransfer  = if ($mapTransfer.ContainsKey($raw1)) { $mapTransfer[$raw1] } else { "unknown" } }
+						if ($miPartes[2] -ne "") { $raw2 = $miPartes[2].Trim().ToUpper(); $colorPrimaries = if ($mapPrimaries.ContainsKey($raw2)) { $mapPrimaries[$raw2] } else { "unknown" } }
+					}
+				}
+			}
 			
 		} catch {
 			throw "The video's metadata is corrupted. Can't do the process."

@@ -157,7 +157,7 @@
     <p>Para que a CUP Pipeline de pós-processamento funcione corretamente no seu computador, o seu sistema precisa cumprir as seguintes dependências físicas e de software:</p>
     <ul>
 		<li><strong>Desenvolvido especificamente para</strong>: Windows 10 e Windows 11 (64 bits). Baseia-se em scripts PowerShell nativos do Windows, pipelines de automação em lote (Batch) e vinculações de terminal específicas do Windows. Linux (incluindo Wine/Proton) e macOS NÃO são suportados.</li>
-		<li><strong>Compatibilidade com API Vulkan <span class="badge">Obrigatório</span>:</strong> A sua placa de vídeo precisa ter suporte nativo à tecnologia Vulkan 1.3 ou superior. Funciona em placas de vídeo dedicadas (AMD RX, Nvidia GTX/RTX) e também em chips integrados (AMD Vega ou Intel HD Graphics mais recentes). Se a sua GPU não tiver suporte a Vulkan, o processo não iniciará.</li>
+		<li><strong>Compatibilidade com API Vulkan <span class="badge">Obrigatório</span>:</strong> A sua placa de vídeo precisa ter suporte nativo à tecnologia Vulkan 1.2 ou superior. Funciona em placas de vídeo dedicadas (AMD RX, Nvidia GTX/RTX) e também em chips integrados (AMD Vega ou Intel HD Graphics mais recentes). Se a sua GPU não tiver suporte a Vulkan, o processo não iniciará.</li>
         <li><strong>Processador (CPU):</strong> Qualquer processador básico de 4 ou 6 núcleos antigos (como a linha AMD FX ou Intel Core de gerações passadas) é perfeitamente capaz de rodar a CUP Pipeline. O uso médio de CPU fica na casa dos 45%, mantendo o Windows totalmente livre de travamentos ou superaquecimento durante a renderização.</li>
         <li><strong>Placa de Vídeo (GPU):</strong> Com suporte a vulkan 1.3 ou superior. </li>
         <li><strong>Memória de Vídeo (VRAM):</strong> Placas de vídeo legadas com 2GB de VRAM dão conta do recado tranquilamente se o usuário operar com inteligência. Recomenda-se fechar navegadores de internet, Discord e jogos em segundo plano antes de iniciar o processo em resoluções altas (como 2K ou 4K) to evitar estouro de memória da placa.</li>
@@ -221,7 +221,7 @@ SHUTDOWN=false
                 <li><code>big</code>: Máxima fidelidade visual e alta taxa de bits, voltado para arquivamento ou upload em alta qualidade. Gera um arquivo final enorme.</li>
             </ul>
         </li>
-        <li><code>-fps número</code>: A taxa de quadros desejada para a fluidez (ex: 60). Se omitido, a geração de quadros não acontece e os FPS originais são mantidos.</li>
+        <li><code>-fps número</code>: A taxa de quadros desejada para a fluidez (ex: 60). Setar em 0 desativa geração de quadros e os FPS originais são mantidos.</li>
         <li><code>-interpolate "none|oversample|mitchell_clamp|linear"</code>: Controla a suavidade do movimento do vídeo. Se você alterar o FPS (por exemplo, de 30 para 60), esta configuração determina como os novos quadros são gerados. O padrão é <code>"none"</code>:
             <ul>
                 <li><code>none</code>: Desativa a mesclagem temporal. Utiliza a duplicação pura de quadros (Vizinho Mais Próximo). Proporciona a máxima economia de desempenho da GPU e garante visuais de jogo nítidos e limpos, sem absolutamente nenhum efeito de *ghosting* ou *motion blur*).</li>

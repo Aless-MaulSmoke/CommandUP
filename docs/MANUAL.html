@@ -158,7 +158,7 @@
 
     <ul>
         <li><strong>Engineered strictly for</strong>: Windows 10 and Windows 11 (64-bit). It relies on Windows native PowerShell scripting, Batch automation pipelines, and Windows-specific terminal bindings. Linux (including Wine/Proton) and macOS are NOT supported.</li>
-        <li><strong>Vulkan API Compatibility <span class="badge">Required</span>:</strong> Your graphics card must have native support for Vulkan technology 1.3 or higher. It works on dedicated graphics cards (AMD RX, Nvidia GTX/RTX) as well as newer integrated chips (AMD Vega or Intel HD Graphics). If your GPU does not support Vulkan, the process will not start.</li>
+        <li><strong>Vulkan API Compatibility <span class="badge">Required</span>:</strong> Your graphics card must have native support for Vulkan technology 1.2 or higher. It works on dedicated graphics cards (AMD RX, Nvidia GTX/RTX) as well as newer integrated chips (AMD Vega or Intel HD Graphics). If your GPU does not support Vulkan, the process will not start.</li>
         <li><strong>Processor (CPU):</strong> Any basic 4 or 6-core processor (such as the AMD FX line or older generations Intel Core) is perfectly capable of running the CUP Pipeline. Average CPU usage is around 45%, leaving Windows completely free from freezes or overheating during rendering.</li>
         <li><strong>Video Memory (VRAM):</strong> Legacy graphics cards with 2GB of VRAM will handle the task smoothly if the user operates wisely. It is recommended to close web browsers, Discord, and background games before starting the process at high resolutions (such as 2K or 4K) to avoid running out of card memory.</li>
         <li><strong>Operating System:</strong> Windows 10 or Windows 11 64-bit with the execution of scripts enabled in the system PowerShell.</li>
@@ -224,7 +224,7 @@ SHUTDOWN=false</code></pre>
                 <li><code>big</code>: Maximum visual fidelity and high bitrate, aimed at archiving or high-quality uploads. Generates a huge final file.</li>
             </ul>
         </li>
-        <li><code>-fps number</code>: The desired frame rate for smoothness (e.g., 60). If omitted, frame generation does not happen and the original FPS is maintained.</li>
+        <li><code>-fps number</code>: The desired frame rate for smoothness (e.g., 60). Setting it to 0 turns off frame generation and the original FPS is kept.</li>
         <li><code>-interpolate "none|oversample|mitchell|clamp|linear"</code>: Controls video motion smoothness. If you change the FPS (for example, from 30 to 60), this setting determines how new frames are generated. The default is <code>"none"</code>:
             <ul>
                 <li><code>none</code>: Disables temporal blending. Uses pure frame duplication (Nearest Neighbor). Provides maximum GPU performance savings and ensures sharp game visuals without absolutely any "ghosting" or "motion blur" effects.</li>

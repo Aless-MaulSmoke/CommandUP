@@ -82,7 +82,7 @@ function Out-GlobalSummary {
  	Write-Host "     \______  /\____/|__|_|  /__|_|  (____  /___|  /\____ |  |______/  |____|       " -ForegroundColor White
 	Write-Host "            \/             \/      \/     \/     \/      \/                         " -ForegroundColor White
 	Write-Host "                                                                                    "
-	Write-Host "        [ Author  : Aless(MaulSmoke) | Community: YT/toPlayAless ]    cup v1.0.3    " -ForegroundColor Gray
+	Write-Host "        [ Author  : Aless(MaulSmoke) | Community: YT/toPlayAless ]    cup v1.0.4    " -ForegroundColor Gray
 	Write-Host "------------------------------------------------------------------------------------" -ForegroundColor DarkGray
 	Write-Host "  Quality: $($Config.quality.ToUpper())  Resolution: $($InfoBanner.widthOut)x$($InfoBanner.heightOut)  Sharpness: $($Config.sharpness)  FPS: $($InfoBanner.fpsOut)  Interp: $($Config.interpolate)" -ForegroundColor White
 	Write-Host "====================================================================================" -ForegroundColor Cyan
@@ -100,7 +100,7 @@ function Out-GlobalSummary {
 			for ($i = 0; $i -lt 10; $i++) {
 				Start-Sleep -Milliseconds 100
 				
-				# desligando via .NET para evitar bug de não contar/desligar quando a janela não tem o foco
+				# desligando via .NET 
 				if ([Console]::KeyAvailable) {
 					$tecla = [Console]::ReadKey($true)
 					if ($tecla.Key -eq "Escape") {

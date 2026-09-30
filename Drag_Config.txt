@@ -1,7 +1,7 @@
 [DRAG_SETTINGS]
 FORMAT=mp4
 QUALITY=med
-FPS=60
+FPS=0
 INTERPOLATE=oversample
 SCALE=1920x1080
 SHARPNESS=8
@@ -33,7 +33,7 @@ SHUTDOWN=false
 #  FPS:
 #  --------------------------------------------------------------------
 #  Target frame rate for movement fluidity (e.g., 60).
-#  *Bypass active: Automatically skipped if same as source video.
+#  Set to 0 or leave empty to keep the original video frame rate.
 #
 #
 #  INTERPOLATE:

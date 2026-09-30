@@ -1,11 +1,11 @@
 ﻿# ==========================================================================
 # ------------------------------
 #
-#   CommandUP (cup) Pipeline - Core Processing Engine (v1.0.3)
+#   CommandUP (cup) Pipeline - Core Processing Engine (v1.0.4)
 #   Automated pipeline for video upscaling (FSR) and frame interpolation (IFS).
 #
 #   extract.ps1 (Powershell script)
-#   07/15/2026
+#   09/22/2026
 #   by Aless (MaulSmoke)
 #
 #   A modular script designed to orchestrate lightweight, hardware-accelerated 
@@ -39,8 +39,8 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 # SETUP PATHS & DIRECTORIES
 # ==========================================================================
 # Ensures dynamic absolute paths based on the script's current location
-$ffmpegPath  = Join-Path $PSScriptRoot "ffmpeg\bin\ffmpeg.exe"
-$ffprobePath = Join-Path $PSScriptRoot "ffmpeg\bin\ffprobe.exe"
+$ffmpegPath  = Join-Path $PSScriptRoot "progs\ffmpeg\bin\ffmpeg.exe"
+$ffprobePath = Join-Path $PSScriptRoot "progs\ffmpeg\bin\ffprobe.exe"
 
 if ([string]::IsNullOrEmpty($output)) {
     $outputDir = Join-Path $PSScriptRoot "output"
@@ -112,7 +112,8 @@ if ($secs -le 0) {
 # ==========================================================================
 Write-Host "Video validated successfully! Starting extraction..." -ForegroundColor Green
 $outputPattern = Join-Path $outputDir "frame_%03d.png"
-$ffmpegArgs = @("-ss", "$time", "-i", "$file", "-t", "$secs", "-f", "image2", $outputPattern)
+$ffmpegArgs = @("-i", "$file", "-ss", "$time", "-t", "$secs", "-f", "image2", $outputPattern)
+
 
 & $ffmpegPath $ffmpegArgs
 

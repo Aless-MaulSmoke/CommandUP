@@ -11,7 +11,7 @@ function Get-ScriptConfig {
 		folder       = $null
 		format       = "mp4"
 		quality      = "MED"
-		fps          = $null
+		fps          = 0
 		interpolate  = "none"
 		scale        = $null
 		sharpness    = 5
@@ -93,21 +93,21 @@ function Get-ScriptConfig {
     $catalogoErros = @{
 		1 = "Ambiguity Error: Use ONLY '-file' OR '-folder', not both at the same time."
 		2 = "No input specified. Use '-file' for a single video or '-folder' for batch processing."
-		3 = "The 'quality' parameter only accepts one of these valid options: LOW | MED | BIG "
-		4 = "The 'fps' parameter must be a valid number greater than 0."
-		5 = "The 'interpolate' parameter only accepts one of these valid options: none | oversample | mitchell_clamp | linear "
-		6 = "The 'scale' parameter should be a resolution, e.g., 1920x1080, or a scaling factor, e.g., 1.5"
-		7 = "The 'sharpness' parameter only accepts numbers between 0 and 10"
-		8 = "The 'hdr' parameter only accepts true or false."
-		9 = "The 'shutdown' parameter only accepts true or false."
-		10 = "The 'port' the parameter must be a valid integer number."
-		11 = "The 'verbose' parameter only accepts true or false."
-		12 = "The 'gpu_id' parameter must be a valid number."
-		13 = "The 'simulate' parameter only accepts one of these valid options: none | nvidia | amd | intel | cpu "
-		14 = "The 'codec' parameter only accepts one of these valid options: avc | hevc "
-		15 = "The 'hdr' parameter requires the codec to be hevc."
-		16 = "The 'debug' parameter only accepts true or false."
-		17 = "The 'format' parameter only accepts one of these valid formats: mp4 | mkv "
+		3 = "The 'quality' only accepts one of these valid options: LOW | MED | BIG "
+		4 = "The 'fps' must be a valid number."
+		5 = "The 'interpolate' only accepts one of these valid options: none | oversample | mitchell_clamp | linear "
+		6 = "The 'scale' should be a resolution, e.g., 1920x1080, or a scaling factor, e.g., 1.5"
+		7 = "The 'sharpness' only accepts numbers between 0 and 10"
+		8 = "The 'hdr' only accepts true or false."
+		9 = "The 'shutdown' only accepts true or false."
+		10 = "The 'port' the must be a valid integer number."
+		11 = "The 'verbose' only accepts true or false."
+		12 = "The 'gpu_id' must be a valid number."
+		13 = "The 'simulate' only accepts one of these valid options: none | nvidia | amd | intel | cpu "
+		14 = "The 'codec' only accepts one of these valid options: avc | hevc "
+		15 = "The 'hdr' requires the codec to be hevc."
+		16 = "The 'debug' only accepts true or false."
+		17 = "The 'format' only accepts one of these valid formats: mp4 | mkv "
 
     }
     $errosEncontrados = @()
@@ -129,12 +129,12 @@ function Get-ScriptConfig {
 	}
 
     # valida: FPS --------------------------------------------------------------
-    if ($null -ne $config.fps -and $config.fps -as [int]) {
-        $config.fps = [int]$config.fps
-        if ($config.fps -le 0) { $errosEncontrados += 4 }
-    } else {
-        if ($null -eq $config.fps) { $config.fps = 0 } else { $errosEncontrados += 4 }
-    }
+	if ($null -ne ($config.fps -as [int])) {
+		$config.fps = [int]$config.fps
+		if ($config.fps -lt 0) { $errosEncontrados += 4 }
+	} else {
+		$errosEncontrados += 4
+	}
 
     # valida: INTERPOLATE ------------------------------------------------------
 	$config.interpolate = $config.interpolate.ToLower().Trim()

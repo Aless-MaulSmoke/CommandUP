@@ -1,11 +1,11 @@
 ﻿# ==========================================================================
 # ------------------------------
 #
-#   Command UP (cup) Pipeline (v1.0.3)
+#   Command UP (cup) Pipeline (v1.0.4)
 #   An automated pipeline for high-performance video upscaling via CLI.
 #
 #   cup.ps1 (Powershell script)
-#   2026/08/27
+#   2026/09/29
 #   by Aless (MaulSmoke)
 #
 #   A modular script designed to orchestrate lightweight, hardware-accelerated 
