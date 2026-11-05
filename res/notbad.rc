@@ -1,0 +1,230 @@
+#include <windows.h>
+#include "resource.h"
+
+IDI_NOTBAD ICON "../images/icon-256.ico"
+IDI_NOTBAD_TITLE ICON "../images/n_icon-256.ico"
+IDB_ABOUT_LOGO BITMAP "notbad-about.bmp"
+
+// Idiomas embutidos (JSON em UTF-8). Nome: NBLANG_<TAG> com '-' trocado por '_'
+// (pt-BR -> NBLANG_PT_BR). Veja lang/en.json e tools/lang_tool.py.
+NBLANG_EN RCDATA "../lang/en.json"
+
+IDR_MAINMENU MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New\tCtrl+N",                IDM_NEW
+        MENUITEM "&Open...\tCtrl+O",            IDM_OPEN
+        MENUITEM "Open &Folder...\tCtrl+Shift+O", IDM_OPENFOLDER
+        MENUITEM "&Save\tCtrl+S",               IDM_SAVE
+        MENUITEM "Save &As...\tCtrl+Shift+S",   IDM_SAVEAS
+        MENUITEM "Save A&ll\tCtrl+Alt+S",       IDM_SAVEALL
+        MENUITEM "Close &Tab\tCtrl+F4",         IDM_CLOSETAB
+        MENUITEM SEPARATOR
+        MENUITEM "Page Set&up...",              IDM_PAGESETUP
+        MENUITEM "&Print...\tCtrl+P",           IDM_PRINT
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit",                       IDM_EXIT
+    END
+    POPUP "&Edit"
+    BEGIN
+        MENUITEM "&Undo\tCtrl+Z",               IDM_UNDO
+        MENUITEM SEPARATOR
+        MENUITEM "Cu&t\tCtrl+X",                IDM_CUT
+        MENUITEM "&Copy\tCtrl+C",               IDM_COPY
+        MENUITEM "&Paste\tCtrl+V",              IDM_PASTE
+        MENUITEM "De&lete\tDel",                IDM_DELETE
+        MENUITEM SEPARATOR
+        MENUITEM "&Find...\tCtrl+F",            IDM_FIND
+        MENUITEM "Find &Next\tF3",              IDM_FINDNEXT
+        MENUITEM "&Replace...\tCtrl+H",         IDM_REPLACE
+        MENUITEM "&Go To...\tCtrl+G",           IDM_GOTO
+        MENUITEM SEPARATOR
+        MENUITEM "Select &All\tCtrl+A",         IDM_SELECTALL
+        MENUITEM "Time/&Date\tF5",              IDM_TIMEDATE
+    END
+    POPUP "F&ormat"
+    BEGIN
+        MENUITEM "&Word Wrap",                  IDM_WORDWRAP
+        MENUITEM "&Font...",                    IDM_FONT
+        MENUITEM SEPARATOR
+        MENUITEM "&Indentation...",             IDM_INDENT
+        POPUP "&Encoding"
+        BEGIN
+            MENUITEM "&ANSI (Windows-1252)",    IDM_ENC_ANSI
+            MENUITEM "UTF-&8",                  IDM_ENC_UTF8
+            MENUITEM "UTF-8 with &BOM",         IDM_ENC_UTF8BOM
+            MENUITEM "UTF-16 &LE (Unicode)",    IDM_ENC_UTF16LE
+        END
+    END
+    POPUP "&View"
+    BEGIN
+        MENUITEM "&Next Tab\tCtrl+Tab",         IDM_NEXT_TAB
+        MENUITEM "&Previous Tab\tCtrl+Shift+Tab", IDM_PREV_TAB
+        MENUITEM SEPARATOR
+        MENUITEM "File &Tree\tCtrl+T",          IDM_TREE
+        MENUITEM "&Line Numbers\tCtrl+Shift+L", IDM_LINENUMBERS
+        MENUITEM "&Highlight Current Line\tCtrl+Shift+H", IDM_HIGHLIGHTLINE
+        MENUITEM "Highlighting &Code\tCtrl+Shift+K", IDM_HIGHLIGHTCODE
+        MENUITEM "&Status Bar",                 IDM_STATUS
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&View Help",                  IDM_HELP
+        MENUITEM SEPARATOR
+        MENUITEM "&About Notbad",              IDM_ABOUT
+    END
+END
+
+IDR_ACCELERATOR ACCELERATORS
+BEGIN
+    "N",            IDM_NEW,        VIRTKEY, CONTROL
+    "O",            IDM_OPEN,       VIRTKEY, CONTROL
+    "O",            IDM_OPENFOLDER, VIRTKEY, CONTROL, SHIFT
+    "T",            IDM_TREE,       VIRTKEY, CONTROL
+    "L",            IDM_LINENUMBERS, VIRTKEY, CONTROL, SHIFT
+    "H",            IDM_HIGHLIGHTLINE, VIRTKEY, CONTROL, SHIFT
+    "K",            IDM_HIGHLIGHTCODE, VIRTKEY, CONTROL, SHIFT
+    "I",            IDM_INDENT_TOGGLE, VIRTKEY, CONTROL, SHIFT
+    "S",            IDM_SAVE,       VIRTKEY, CONTROL
+    "S",            IDM_SAVEAS,     VIRTKEY, CONTROL, SHIFT
+    "S",            IDM_SAVEALL,    VIRTKEY, CONTROL, ALT
+    VK_F4,          IDM_CLOSETAB,   VIRTKEY, CONTROL
+    VK_TAB,         IDM_NEXT_TAB,   VIRTKEY, CONTROL
+    VK_TAB,         IDM_PREV_TAB,   VIRTKEY, CONTROL, SHIFT
+    "P",            IDM_PRINT,      VIRTKEY, CONTROL
+    "Z",            IDM_UNDO,       VIRTKEY, CONTROL
+    "X",            IDM_CUT,        VIRTKEY, CONTROL
+    "C",            IDM_COPY,       VIRTKEY, CONTROL
+    "V",            IDM_PASTE,      VIRTKEY, CONTROL
+    "F",            IDM_FIND,       VIRTKEY, CONTROL
+    VK_F3,          IDM_FINDNEXT,   VIRTKEY
+    "H",            IDM_REPLACE,    VIRTKEY, CONTROL
+    "G",            IDM_GOTO,       VIRTKEY, CONTROL
+    "A",            IDM_SELECTALL,  VIRTKEY, CONTROL
+    VK_F5,          IDM_TIMEDATE,   VIRTKEY
+END
+
+STRINGTABLE
+BEGIN
+    IDS_UNTITLED        "Untitled"
+    IDS_FILTER_TEXT     "Text Documents (*.txt)"
+    IDS_FILTER_ALL      "All Files (*.*)"
+    IDS_SAVE_PROMPT     "Do you want to save changes to %s?"
+    IDS_OPEN_FAILED     "Cannot open the file."
+    IDS_SAVE_FAILED     "Cannot save the file."
+    IDS_READONLY        "The file is read-only."
+    IDS_ABOUT_TITLE     "About Notbad"
+    IDS_STATUS_LINE     "Ln %u, Col %u"
+    IDS_STATUS_COL      "%u%%"
+    IDS_ENC_ASK         "Yes: Convert\nKeep the text exactly as it appears and save it as\n%s\n\nNo: Reinterpret\nRead the file's bytes as %s;\nthe characters shown will change."
+    IDS_ENC_LOSS        "Some characters cannot be represented in %s and will be replaced when the file is saved. Do you want to continue?"
+    IDS_REOPEN_DIRTY    "%s is already open and has unsaved changes.\n\nDo you want to reopen the file and discard the current changes?"
+    IDS_ABOUT_VERSION   "Version %s"
+    IDS_HELP_TEXT       "Notbad %s\n\nFile: New, Open, Save, Save As, Save All and Close Tab.\nOpen Folder shows the folder tree; double-click a file to open it.\nEdit: Undo, Cut, Copy, Paste, Find, Replace and Go To.\nFormat: Word Wrap, Font and Indentation.\nView: switch tabs, toggle the file tree, line numbers and status bar.\n\nShortcuts: Ctrl+N/O/S, Ctrl+F/H/G, Ctrl+Tab, Ctrl+T, Ctrl+Shift+L."
+    IDS_INDENT_NO_TABS  "There are no tabs in the indentation of this tab."
+    IDS_INDENT_NO_SPACES "There are no runs of spaces long enough to convert to tabs."
+    IDS_FIND_TITLE      "Find"
+    IDS_REPLACE_TITLE   "Replace"
+    IDS_FIND_NOT_FOUND  "Cannot find ""%s""."
+    IDS_REPLACED_COUNT  "Replaced %d occurrence(s)."
+    IDS_STATUS_AUTOINDENT "Auto-indent"
+    IDS_ENC_UTF8BOM     "UTF-8 with BOM"
+END
+
+IDD_ABOUT DIALOGEX 0, 0, 340, 186
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About Notbad"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "", IDC_ABOUT_IMAGE, "Static", SS_BITMAP | SS_REALSIZECONTROL, 12, 12, 64, 64
+    LTEXT           "Notbad", IDC_ABOUT_NAME, 88, 14, 240, 14
+    LTEXT           "Version 1.0.4", IDC_ABOUT_VERSION, 88, 30, 240, 10
+    LTEXT           "A modern and ""notbad"" reimagining of the traditional notepad text editor, keeping the lightweight soul you love with the power features you need.", IDC_ABOUT_COPYRIGHT, 88, 48, 240, 44
+    LTEXT           "Project Team:", IDC_ABOUT_TEAM_LABEL, 12, 112, 316, 10
+    LTEXT           "* Aless MaulSmoke: Project Manager | Concept | Code Review", IDC_ABOUT_TEAM1, 16, 128, 312, 10
+    LTEXT           "* opencode and claudecode: Core Development | Heavy Coding", IDC_ABOUT_TEAM2, 16, 140, 312, 10
+    CONTROL         "<a href=""https://github.com/Aless-MaulSmoke/Notbad"">https://github.com/Aless-MaulSmoke/Notbad</a>", IDC_ABOUT_LINK, "SysLink", WS_TABSTOP, 12, 158, 260, 10
+    DEFPUSHBUTTON   "OK", IDC_ABOUT_OK, 283, 158, 45, 14
+END
+
+IDD_GOTO DIALOGEX 0, 0, 180, 70
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Go To Line"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "&Line number:", IDC_GOTO_PROMPT, 10, 12, 70, 10
+    EDITTEXT        IDC_GOTO_EDIT, 80, 10, 90, 14, ES_AUTOHSCROLL | ES_NUMBER
+    DEFPUSHBUTTON   "OK", IDC_GOTO_OK, 70, 45, 45, 14
+    PUSHBUTTON      "Cancel", IDC_GOTO_CANCEL, 125, 45, 45, 14
+END
+
+IDD_FIND DIALOGEX 0, 0, 260, 132
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Find"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "&Find what:", IDC_FIND_LABEL, 7, 8, 50, 10
+    EDITTEXT        IDC_FIND_EDIT, 60, 6, 130, 14, ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "Find &Next", IDC_FIND_NEXT, 196, 6, 57, 14
+    LTEXT           "Replace &with:", IDC_REPLACE_LABEL, 7, 27, 50, 10
+    EDITTEXT        IDC_REPLACE_EDIT, 60, 25, 130, 14, ES_AUTOHSCROLL
+    PUSHBUTTON      "&Replace", IDC_REPLACE, 196, 25, 57, 14
+    PUSHBUTTON      "Replace &All", IDC_REPLACEALL, 196, 43, 57, 14
+    GROUPBOX        "Options", IDC_FIND_OPTIONS, 7, 47, 175, 58
+    CONTROL         "Match &case", IDC_MATCHCASE, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 14, 59, 80, 10
+    CONTROL         "&Whole word", IDC_WHOLEWORD, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 14, 72, 80, 10
+    CONTROL         "All open &files", IDC_ALLFILES, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 14, 85, 80, 10
+    CONTROL         "&Up", IDC_DIRUP, "Button", BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP, 100, 59, 50, 10
+    CONTROL         "&Down", IDC_DIRDOWN, "Button", BS_AUTORADIOBUTTON, 100, 72, 50, 10
+    LTEXT           "", IDC_FIND_STATUS, 7, 110, 190, 10
+    PUSHBUTTON      "Close", IDCANCEL, 196, 108, 57, 14
+END
+
+IDD_INDENT DIALOGEX 0, 0, 200, 176
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Indentation"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "&Auto-indent new lines", IDC_INDENT_AUTO, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 10, 10, 112, 10
+    LTEXT           "Ctrl+Shift+I", IDC_INDENT_AUTO_HINT, 124, 10, 66, 10, SS_RIGHT | SS_NOPREFIX
+    LTEXT           "Tab &size:", IDC_INDENT_SIZE_LABEL, 10, 30, 50, 10
+    EDITTEXT        IDC_INDENT_SIZE, 62, 28, 40, 14, ES_AUTOHSCROLL | ES_NUMBER
+    GROUPBOX        "Indent &using", IDC_INDENT_STYLE_GROUP, 10, 50, 180, 34
+    CONTROL         "&Spaces", IDC_INDENT_SPACES, "Button", BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP, 18, 64, 80, 10
+    CONTROL         "&Tabs", IDC_INDENT_TABS, "Button", BS_AUTORADIOBUTTON, 100, 64, 80, 10
+    GROUPBOX        "Convert this tab's indentation on OK", IDC_INDENT_GROUP, 10, 90, 180, 56
+    CONTROL         "&None", IDC_INDENT_NONE, "Button", BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP, 18, 104, 160, 10
+    CONTROL         "Convert &tabs to spaces", IDC_INDENT_TABS2SP, "Button", BS_AUTORADIOBUTTON, 18, 118, 160, 10
+    CONTROL         "Convert s&paces to tabs", IDC_INDENT_SP2TABS, "Button", BS_AUTORADIOBUTTON, 18, 132, 160, 10
+    DEFPUSHBUTTON   "OK", IDOK, 90, 154, 45, 14
+    PUSHBUTTON      "Cancel", IDCANCEL, 145, 154, 45, 14
+END
+
+1 VERSIONINFO
+ FILEVERSION 1,0,1,0
+ PRODUCTVERSION 1,0,1,0
+ FILEFLAGSMASK 0x3fL
+ FILEFLAGS 0x0L
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "CompanyName", "Notbad"
+            VALUE "FileDescription", "Notbad"
+            VALUE "FileVersion", "1.0.4.0"
+            VALUE "InternalName", "Notbad"
+            VALUE "OriginalFilename", "Notbad.exe"
+            VALUE "ProductName", "Notbad"
+            VALUE "ProductVersion", "1.0.4.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
