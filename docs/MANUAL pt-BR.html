@@ -159,8 +159,8 @@
 		<li><strong>Desenvolvido especificamente para</strong>: Windows 10 e Windows 11 (64 bits). Baseia-se em scripts PowerShell nativos do Windows, pipelines de automação em lote (Batch) e vinculações de terminal específicas do Windows. Linux (incluindo Wine/Proton) e macOS NÃO são suportados.</li>
 		<li><strong>Compatibilidade com API Vulkan <span class="badge">Obrigatório</span>:</strong> A sua placa de vídeo precisa ter suporte nativo à tecnologia Vulkan 1.2 ou superior. Funciona em placas de vídeo dedicadas (AMD RX, Nvidia GTX/RTX) e também em chips integrados (AMD Vega ou Intel HD Graphics mais recentes). Se a sua GPU não tiver suporte a Vulkan, o processo não iniciará.</li>
         <li><strong>Processador (CPU):</strong> Qualquer processador básico de 4 ou 6 núcleos antigos (como a linha AMD FX ou Intel Core de gerações passadas) é perfeitamente capaz de rodar a CUP Pipeline. O uso médio de CPU fica na casa dos 45%, mantendo o Windows totalmente livre de travamentos ou superaquecimento durante a renderização.</li>
-        <li><strong>Placa de Vídeo (GPU):</strong> Com suporte a vulkan 1.3 ou superior. </li>
-        <li><strong>Memória de Vídeo (VRAM):</strong> Placas de vídeo legadas com 2GB de VRAM dão conta do recado tranquilamente se o usuário operar com inteligência. Recomenda-se fechar navegadores de internet, Discord e jogos em segundo plano antes de iniciar o processo em resoluções altas (como 2K ou 4K) to evitar estouro de memória da placa.</li>
+        <li><strong>Placa de Vídeo (GPU):</strong> Com suporte a Vulkan 1.2 ou superior. </li>
+        <li><strong>Memória de Vídeo (VRAM):</strong> Placas de vídeo legadas com 2GB de VRAM dão conta do recado tranquilamente se o usuário operar com inteligência. Recomenda-se fechar navegadores de internet, Discord e jogos em segundo plano antes de iniciar o processo em resoluções altas (como 2K ou 4K) para evitar estouro de memória da placa.</li>
         <li><strong>Sistema Operacional:</strong> Windows 10 ou Windows 11 de 64-bits com o terminal PowerShell ativo e liberado para execução de scripts.</li>
     </ul>
 
@@ -192,6 +192,7 @@ CODEC=avc
 HDR=false
 SHUTDOWN=false
 	</code></pre>
+    <p><strong>Importante:</strong> Execute apenas um processo do CommandUP por vez. Cada execução atualiza o arquivo compartilhado <code>shaders/fsr.glsl</code> com as configurações de nitidez e HDR do FSR antes de o FFmpeg carregá-lo; execuções simultâneas podem sobrescrever as configurações umas das outras.</p>
 
     <h3>Método 2: PowerShell (Terminal)</h3>
     <p>Esse é o método original para você processar seus vídeos. O Processo todo se desenrola dentro de um prompt do powershell (conhecer comandos básicos de navegação nas pastas via comando é importante). </p>

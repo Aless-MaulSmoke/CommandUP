@@ -202,7 +202,7 @@ function Initialize-GlobalPipeline {
 
 			# Testa 8bits
 			$probe8Bits = "yuv420p"
-			$args8 = @("-init_hw_device", "vulkan=vk:$($Config.gpu_id)", "-f", "lavfi", "-i", "nullsrc=s=1280x720:d=1", "-c:v", $codecAlvo, "-pix_fmt", $probe8Bits, "-f", "null", "-")
+			$args8 = @("-init_hw_device", "vulkan=vk:$($pipeline.vulkan_id)", "-f", "lavfi", "-i", "nullsrc=s=1280x720:d=1", "-c:v", $codecAlvo, "-pix_fmt", $probe8Bits, "-f", "null", "-")
 			$res8  = & $paths.ffmpeg -hide_banner $args8 2>&1 | Out-String
 
 			if ($res8 -notmatch $codecFalhas) {
@@ -213,7 +213,7 @@ function Initialize-GlobalPipeline {
 
 				# Testa 10bits
 				$probe10Bits = $vendorCodecs[$pipeline.gpuVendor]["PROBE_10BIT"]
-				$args10 = @("-init_hw_device", "vulkan=vk:$($Config.gpu_id)", "-f", "lavfi", "-i", "nullsrc=s=1280x720:d=1", "-c:v", $codecAlvo, "-pix_fmt", $probe10Bits, "-f", "null", "-")
+				$args10 = @("-init_hw_device", "vulkan=vk:$($pipeline.vulkan_id)", "-f", "lavfi", "-i", "nullsrc=s=1280x720:d=1", "-c:v", $codecAlvo, "-pix_fmt", $probe10Bits, "-f", "null", "-")
 				$res10  = & $paths.ffmpeg -hide_banner $args10 2>&1 | Out-String
 
 				if ($res10 -notmatch $codecFalhas) {

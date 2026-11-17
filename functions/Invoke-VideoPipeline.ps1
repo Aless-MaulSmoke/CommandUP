@@ -56,6 +56,8 @@ function Invoke-VideoPipeline {
     $inTrc = $Metadata.colorTransfer
     $bitsFormat = $Metadata.bitsFormat
 	$needEmulate = $Metadata.needEmulate
+    $encoderCodec = $Metadata.encoderCodec
+    $encoderArgs  = $Metadata.encoderArgs
     $placeboRange = if ($inRange -eq "limited" -or $inRange -eq "tv") { "tv" } else { "pc" }
 
     # Conversão de formatos para range Full
@@ -144,6 +146,8 @@ function Invoke-VideoPipeline {
         Speed = 0.0
         Bitrate = "N/A"
         needEmulate = $needEmulate
+        encoderCodec = $encoderCodec
+        encoderGpuName = $Metadata.encoderGpuName
         ErrorMessage = $null
     }
     $tsDuracao = [TimeSpan]::FromSeconds($Resultado.DuracaoVideo)
@@ -167,7 +171,10 @@ function Invoke-VideoPipeline {
         }
 
         # Ajusta audio e legendas dependendo do formato
-        $formatosArgs = @{"mp4" = "-c:a copy -y "; "mkv" = "-c:a copy -c:s copy -y " }
+        # Sem -map o FFmpeg escolhe 1 audio e 1 legenda sozinho; por isso o mapeamento e explicito.
+        # MP4: 1o video e 1o audio, sem legendas (-sn). MKV: todos os audios, legendas e anexos (fontes).
+        # 0:V exclui capas (attached pic).
+        $formatosArgs = @{"mp4" = "-map 0:V:0 -map 0:a:0? -sn -c:a copy -y "; "mkv" = "-map 0:V:0 -map 0:a? -map 0:s? -map 0:t? -c:a copy -c:s copy -y " }
 
         # Seta a tag correta: avc1 para AVC (H.264) ou hvc1 para HEVC (H.265)
         $codecArgs = @{"avc" = "avc1 "; "hevc" = "hvc1 " }
@@ -175,7 +182,7 @@ function Invoke-VideoPipeline {
         # Ajuste dinâmico para gerar o video em colorange Full
         $argsMetadadosCor = ""
         if ($placeboRange -eq "pc") {
-            if ($Global:SelectedCodec -eq "hevc_amf") {
+            if ($encoderCodec -eq "hevc_amf") {
                 $argsMetadadosCor = "-bsf:v hevc_metadata=video_full_range_flag=1 -colorspace $($inSpace) -color_primaries $($inPrimaries) -color_trc $($inTrc) "
             } else {
                 $argsMetadadosCor = "-color_range pc -colorspace $($inSpace) -color_primaries $($inPrimaries) -color_trc $($inTrc) "
@@ -189,8 +196,8 @@ function Invoke-VideoPipeline {
                             '-i "' + $file + '" ' +
                             '-vf "' + $vfString + '" ' +
                             '-fps_mode passthrough ' +
-                            '-c:v ' + $Global:SelectedCodec + ' ' +
-                            ($Global:CodecArgs -join ' ') + ' ' +
+                            '-c:v ' + $encoderCodec + ' ' +
+                            ($encoderArgs -join ' ') + ' ' +
                             $argsMetadadosCor +
                             '-tag:v ' + $codecArgs[$codec] + $formatosArgs[$format] + '"' + $outFile + '"'
 
@@ -203,6 +210,8 @@ function Invoke-VideoPipeline {
 		$processo = Start-Process -FilePath $ffmpeg -ArgumentList $argumentosString `
 								  -NoNewWindow -PassThru `
 								  -RedirectStandardError $logIndividual
+		# Mantem o handle do processo aberto: sem isso, com Start-Process -PassThru, o ExitCode pode voltar vazio ($null)
+		$null = $processo.Handle
 
 		# Aguarda a sincronização do Socket
 		$timeoutContador = 0
@@ -223,6 +232,7 @@ function Invoke-VideoPipeline {
 				
 				$outTimeMs = 0
 				$velocidade = 1.0
+				$localEncoder = if (@($Global:vendorCodecs["CPU"]["AVC"], $Global:vendorCodecs["CPU"]["HEVC"]) -contains $encoderCodec) { "CPU" } else { "GPU" }
 				
 				# Oculta o cursor do terminal
 				[Console]::CursorVisible = $false
@@ -235,6 +245,7 @@ function Invoke-VideoPipeline {
 --------------------------------------------------------[ Press Q key to abort ]----
   [File     ]: $($Metadata.NomeArquivo)
   [Format   ]: $($Metadata.wOriginal)x$($Metadata.hOriginal)/$($metadata.fpsOriginal) -> $($Metadata.widthOut)x$($Metadata.heightOut)/$($Metadata.fpsOut) $($metadata.bitsFormat)-Bit $((Get-Culture).TextInfo.ToTitleCase($inRange.ToLower()))
+  [Encoder  ]: $localEncoder - $encoderCodec
   [Length   ]: $($timeDuracao)
 "@
 				Write-Host $layoutEstatico
@@ -335,8 +346,8 @@ function Invoke-VideoPipeline {
 							# LAYOUT DINÂMICO (Apenas o que muda)
 							$layoutDinamico = @"
   [Done     ]: $($tempoAtualStr)
-  [Progress ]: [$barraVisual] $porcentagem% 
-  [Speed    ]: $($velocidade.ToString('0.00'))x  $($animacao[$animacaoPos])  $($velocidadeFps)fps     
+  [Progress ]: $barraVisual $porcentagem% $($animacao[$animacaoPos])  
+  [Speed    ]: $($velocidade.ToString('0.00'))x - $($velocidadeFps)fps   
   [Elapsed  ]: $decorridoStr 
   [Left     ]: $restanteStr   
 "@
@@ -353,11 +364,18 @@ function Invoke-VideoPipeline {
 				# Exibe novamente o cursor do terminal
 				[Console]::CursorVisible = $true
 				
+				# Confirma que o FFmpeg terminou e verifica o codigo de saida.
+				# Sem isso, uma falha no meio da codificacao era tratada como sucesso.
+				$processo.WaitForExit()
+				if ($processo.ExitCode -ne 0) {
+					Throw "FFmpeg exited with error code $($processo.ExitCode). The output file may be incomplete. Check the log file."
+				}
+				
 				if ($porcentagem -ne 0) {
 					$barraVisualFinal = "■" * 25
 					$layoutDinamicoFinal = @"
   [Done     ]: $($timeDuracao)
-  [Progress ]: [$barraVisualFinal] 100%
+  [Progress ]: $barraVisualFinal 100%  
   [Speed    ]: $($velocidade.ToString('0.00'))x 
   [Elapsed  ]: $decorridoStr 
   [Left     ]: $restanteStr

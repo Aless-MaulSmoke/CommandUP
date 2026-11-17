@@ -1,7 +1,7 @@
 ﻿# ==========================================================================
 # ------------------------------
 #
-#   Command UP (cup) Pipeline (v1.0.4)
+#   Command UP (cup) Pipeline (v1.0.5)
 #   An automated pipeline for high-performance video upscaling via CLI.
 #
 #   cup.ps1 (Powershell script)

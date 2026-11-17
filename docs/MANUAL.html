@@ -181,7 +181,7 @@
     </ol>
 
     <p>You can configure the process by editing the file <code>DRAG_CONFIG.txt</code>:</p>
-    <pre><code>[DRAG SETTINGS]
+    <pre><code>[DRAG_SETTINGS]
 FORMAT=mp4
 QUALITY=med
 FPS=60
@@ -191,6 +191,7 @@ SHARPNESS=8
 CODEC=avc
 HDR=false
 SHUTDOWN=false</code></pre>
+    <p><strong>Important:</strong> Run only one CommandUP process at a time. Each run updates the shared <code>shaders/fsr.glsl</code> file with its FSR sharpness and HDR settings before FFmpeg loads it; concurrent runs could overwrite each other's settings.</p>
 
     <h3>Method 2: PowerShell (Terminal)</h3>
 
@@ -225,11 +226,11 @@ SHUTDOWN=false</code></pre>
             </ul>
         </li>
         <li><code>-fps number</code>: The desired frame rate for smoothness (e.g., 60). Setting it to 0 turns off frame generation and the original FPS is kept.</li>
-        <li><code>-interpolate "none|oversample|mitchell|clamp|linear"</code>: Controls video motion smoothness. If you change the FPS (for example, from 30 to 60), this setting determines how new frames are generated. The default is <code>"none"</code>:
+        <li><code>-interpolate "none|oversample|mitchell_clamp|linear"</code>: Controls video motion smoothness. If you change the FPS (for example, from 30 to 60), this setting determines how new frames are generated. The default is <code>"none"</code>:
             <ul>
                 <li><code>none</code>: Disables temporal blending. Uses pure frame duplication (Nearest Neighbor). Provides maximum GPU performance savings and ensures sharp game visuals without absolutely any "ghosting" or "motion blur" effects.</li>
                 <li><code>oversample</code>: Enables "Smooth Motion" sampling. Blends frames when an output frame falls exactly between two source frames. Highly recommended for preserving the original and natural subjective appearance of the video.</li>
-                <li><code>mitchell</code>: Uses a heavier, higher-quality filter to smoothly interpolate frames. Designed to maximize the elimination of the ringing effect and visual artifacts. The best option for maximum smoothness (requires modern hardware with a GPU/RTX).</li>
+                <li><code>mitchell_clamp</code>: Uses a heavier, higher-quality filter to smoothly interpolate frames. Designed to maximize the elimination of the ringing effect and visual artifacts. The best option for maximum smoothness (requires modern hardware with a GPU/RTX).</li>
                 <li><code>linear</code>: Applies a smart linear overlap blend/transition between frames. Extremely lightweight processing, ideal for a smooth pace on older hardware configurations.</li>
             </ul>
         </li>
@@ -294,11 +295,11 @@ SHUTDOWN=false</code></pre>
 
     <h3>CUP Pipeline configuration</h3>
 	<p>CommandUP has a configuration file at the root of the pipeline called config.ini. In this file, we can edit settings for some execution parameters:</p>
-    <pre><code>[CUP SETTINGS]
+    <pre><code>[CUP_SETTINGS]
 PORT=50548
 VERBOSE=false
 GPU_ID=0
-SIMULATION=none
+SIMULATE=none
 DEBUG=false
 </code></pre>
 
@@ -351,7 +352,7 @@ DEBUG=false
         <li><strong>Core Component (FFmpeg):</strong> Version N-125258-gdf94900c98-20260624. Applicable License: <em>GNU Lesser General Public License (LGPL v2.1 or later)</em> or <em>GNU General Public License (GPL v2.0 or later)</em>.</li>
         <li><strong>Vulkan and IFS Rendering Library (libplacebo):</strong> Built-in compilation natively inside the main FFmpeg binary listed above. Applicable License: <em>GNU Lesser General Public License (LGPL v2.1 or later)</em>.</li>
         <li><strong>Spatial Scaling Algorithm (FidelityFX FSR):</strong> Version v1.0.2. Developed and registered by Advanced Micro Devices, Inc. (AMD). Applicable License: <em>MIT License (Open-Source and widely permissive)</em> ported to GLSL by agyild.</li>
-        <li><strong>CUP Pipeline Integration Scripts:</strong> Developed by Aless (MauiSmoke). Applicable License: <em>MIT License (Free to use Open-Source)</em>.</li>
+        <li><strong>CUP Pipeline Integration Scripts:</strong> Developed by Aless (MaulSmoke). Applicable License: <em>MIT License (Free to use Open-Source)</em>.</li>
     </ul>
 
     <h2>Social Channels:</h2>

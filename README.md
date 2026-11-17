@@ -1,4 +1,4 @@
-# CommandUP (cup) Pipeline v1.0.4 — Upscale + Frame Interpolator 🎬
+# CommandUP (cup) Pipeline v1.0.5 — Upscale + Frame Interpolator 🎬
 
 > **Lightweight, autonomous video post-processing pipeline built exclusively for Windows.** Bring the "Lossless Scaling" workflow to your offline local video files on low-end and legacy hardware.
 
@@ -68,6 +68,11 @@ CODEC=avc
 HDR=false
 SHUTDOWN=false
 ```
+
+> **Important:** Run only one CommandUP process at a time. Each run updates the
+> shared `shaders/fsr.glsl` file with its FSR sharpness and HDR settings before
+> FFmpeg loads it; concurrent runs could overwrite each other's settings.
+
 ### Method 2: PowerShell Terminal (Advanced Control)
 Navigate to your project directory inside PowerShell:
 ```powershell

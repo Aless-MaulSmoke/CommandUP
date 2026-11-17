@@ -160,12 +160,18 @@ param (
 			$needEmulate = $true
 		}
 		
-		# Seta modo emulado que força encode via CPU
+		# Encoder deste video: por padrao o da GPU (definido na inicializacao).
+		# A emulacao por CPU vale somente para este video e NAO altera o estado compartilhado,
+		# para nao vazar para os proximos videos do lote.
+		$encoderCodec   = $Global:SelectedCodec
+		$encoderArgs    = $Global:CodecArgs
+		$encoderGpuName = $Pipeline.gpuName
+
+		# Seta modo emulado que força encode via CPU (somente para este video)
 		if ($needEmulate -eq $true) {
-			$Pipeline.gpuName   = "$($pipeline.gpuName) (don't encoder support |using CPU)"
-			$Pipeline.gpuVendor = "CPU"
-			$Global:SelectedCodec = $Global:vendorCodecs[$Pipeline.gpuVendor][$Config.codec]
-			$Global:CodecArgs     = $Global:vendorArgs[$Pipeline.gpuVendor]
+			$encoderGpuName = "$($Pipeline.gpuName) (don't encoder support |using CPU)"
+			$encoderCodec   = $Global:vendorCodecs["CPU"][$Config.codec]
+			$encoderArgs    = $Global:vendorArgs["CPU"]
 		}
 
 	} catch {
@@ -226,6 +232,9 @@ param (
 		pixFormat       = $pixFormat
 		bitsFormat      = $bitsFormat
 		needEmulate     = $needEmulate
+		encoderCodec    = $encoderCodec
+		encoderArgs     = $encoderArgs
+		encoderGpuName  = $encoderGpuName
 		colorRange      = $colorRange
 		colorSpace      = $colorSpace
 		colorPrimaries  = $colorPrimaries

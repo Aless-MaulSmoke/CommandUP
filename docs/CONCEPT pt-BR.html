@@ -156,7 +156,7 @@
     <p>Para materializar o conceito de pós-processamento de vídeo leve e focado em hardware legado, uniu-se o poder de ferramentas de código aberto (open-source) consagradas a lógicas matemática executadas diretamente na GPU. O ecossistema se sustenta sobre quatro pilares fundamentais:</p>
     
     <p style="text-align: center; font-weight: bold; margin: 15px 0;">
-        <code>FFmpeg</code> + <code>Vulkan</code> + <code>FSR (FidelityFX Super Resolution)</code> + <code>IFS (Interpolate Fluid Sampling)</code>
+        <code>FFmpeg</code> + <code>Vulkan</code> + <code>FSR (FidelityFX Super Resolution)</code> + <code>IFS (Interpolated Frame Sampling)</code>
     </p>
 
     <p>Embora componham quatro camadas tecnológicas distintas, todas funcionam fundidas sob o mesmo processo automatizado que você dispara facilmente arrastando e soltando arquivos ou pastas ou por comandos no seu PowerShell:</p>
@@ -165,7 +165,7 @@
         <li><strong>FFmpeg:</strong> O motor principal responsável pela manipulação, leitura e codificação final dos fluxos de vídeo.</li>
         <li><strong>Vulkan:</strong> A API gráfica de baixo nível acessível via libplacebo. Vulkan 1.2 ou superior é uma dependência obrigatória, sua vCard precisa ter suporte nativo.</li>
         <li><strong>AMD FidelityFX FSR:</strong> Shader focado em upscaling espacial executado diretamente na GPU, ampliando a resolução com preservação de bordas sem depender de nenhuma estrutura de IA.</li>
-        <li><strong>IFS (Interpolated Fluid Sampling):</strong> Filtros de interpolação aplicados diretamente por Shader pela libplacebo, gerando frames de forma veloz em computadores lentos.</li>
+        <li><strong>IFS (Interpolated Frame Sampling):</strong> Filtros de interpolação aplicados diretamente por Shader pela libplacebo, gerando frames de forma veloz em computadores lentos.</li>
     </ul>
 
     <p>Toda a integração dessa pipeline é feita de forma 100% nativa via script, eliminando completamente a necessidade de instalar ecossistemas ou motores de desenvolvimento pesados como Node.js, Python ou ambientes virtuais complexos. Não há necessidade de rodar programas de instalação ou lidar com configurações complexas de ambiente; o projeto funciona de forma totalmente autônoma, portátil e pronta para uso direto no seu sistema</p>

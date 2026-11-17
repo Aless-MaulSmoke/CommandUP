@@ -6,6 +6,14 @@ All notable changes to this project will be documented in this file. This projec
 
 ## ☕ CommandUP Era
 
+### CUP [v1.0.5] - 2026-11-17
+* **gpu_id parameter:** Yet another fix for an inconsistency regarding the correct selection of the GPU.
+* **Fixed `-format` behavior:** MKV videos now keep all audio tracks and embedded subtitles from the original. MP4 videos keep only the first audio track and no subtitles, as documented.
+* **Failed videos are no longer reported as successful:** If something goes wrong during encoding and the video is left incomplete, it is now reported as a failure.
+* **Fixed mixed batches:** When one video in a folder needed CPU encoding (for example, a 10-bit video on a vCard that only encodes 8-bit), every following video was also encoded by the CPU. Now each video uses the GPU whenever it can.
+* **New `[Encoder]` field in the HUD:** Each video now shows whether it is being encoded by the CPU or the GPU, and which encoder is being used.
+
+
 ### CUP [v1.0.4] - 2026-09-30
 * **New FPS parameter behavior:** If you now set the FPS to 0 (zero), the final video(s) will retain the original FPS. This is very useful for batch processing.
 * **FFmpeg Downgrade:** FFmpeg and libplacebo have been replaced with older versions to support older NVIDIA drivers (531.4) as well as Vulkan 1.2.

@@ -73,7 +73,7 @@ function Out-GlobalSummary {
 	}
 
 	Write-Host "====================================================================================" -ForegroundColor Cyan
-	Write-Host "  vCard (GPU): $($Pipeline.gpuName) [Codec: $Global:SelectedCodec] " -ForegroundColor Cyan
+	Write-Host "  vCard (GPU): $($Pipeline.gpuName) " -ForegroundColor Cyan
 	Write-Host "------------------------------------------------------------------------------------" -ForegroundColor DarkGray
 	Write-Host "    _________                                           .___  ____ _____________    " -ForegroundColor Red
 	Write-Host "    \_   ___ \  ____   _____   _____ _____    ____    __| _/ |    |   \______   \   " -ForegroundColor Red
@@ -82,7 +82,7 @@ function Out-GlobalSummary {
  	Write-Host "     \______  /\____/|__|_|  /__|_|  (____  /___|  /\____ |  |______/  |____|       " -ForegroundColor White
 	Write-Host "            \/             \/      \/     \/     \/      \/                         " -ForegroundColor White
 	Write-Host "                                                                                    "
-	Write-Host "        [ Author  : Aless(MaulSmoke) | Community: YT/toPlayAless ]    cup v1.0.4    " -ForegroundColor Gray
+	Write-Host "        [ Author  : Aless(MaulSmoke) | Community: YT/toPlayAless ]    cup v1.0.5    " -ForegroundColor Gray
 	Write-Host "------------------------------------------------------------------------------------" -ForegroundColor DarkGray
 	Write-Host "  Quality: $($Config.quality.ToUpper())  Resolution: $($InfoBanner.widthOut)x$($InfoBanner.heightOut)  Sharpness: $($Config.sharpness)  FPS: $($InfoBanner.fpsOut)  Interp: $($Config.interpolate)" -ForegroundColor White
 	Write-Host "====================================================================================" -ForegroundColor Cyan
